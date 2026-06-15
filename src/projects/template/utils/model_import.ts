@@ -9,11 +9,12 @@ export const TEMPLATE_MODEL_IMPORT_EXTENSIONS = [
     'ses',
     'zip'
 ] as const;
-
+//生成 <input type="file"> 的 accept 字符串
 export const TEMPLATE_MODEL_IMPORT_ACCEPT = TEMPLATE_MODEL_IMPORT_EXTENSIONS
     .map(extension => `.${extension}`)
     .join(',');
 
+// 文件去重
 export function dedupeImportFiles(files: File[]): File[] {
     const fileMap = new Map<string, File>();
 

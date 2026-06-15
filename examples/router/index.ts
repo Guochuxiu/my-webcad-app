@@ -3,6 +3,7 @@ import Home from '../views/Home.vue';
 import WebcadTemplate from '../views/WebcadTemplate.vue';
 import twodCanvas from '../views/2D_canvas.vue';
 import threedCanvas from '../views/3D_canvas.vue';
+import workpie_object from '../views/workpie_object.vue';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -35,6 +36,14 @@ const routes: RouteRecordRaw[] = [
         component: threedCanvas,
         meta: {
             title: '3D_canvas'
+        }
+    },
+    {
+        path: '/workpie_object',
+        name: 'workpie_object',
+        component: workpie_object,
+        meta: {
+            title: 'workpie_object'
         }
     }
 ];

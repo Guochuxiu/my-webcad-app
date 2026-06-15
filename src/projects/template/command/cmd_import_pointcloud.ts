@@ -10,7 +10,7 @@ export interface ImportPointCloudParams {
     files: File[];
     fitView?: boolean;
 }
-
+//导入点云模型命令
 export class CmdImportPointCloud extends CmdBase<ImportPointCloudParams, TempCanvas> {
     async commit() {
         const files = (this._params?.files ?? []).filter(isPCDFile);

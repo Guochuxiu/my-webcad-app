@@ -20,6 +20,11 @@
                 <h2>3D_canvas</h2>
                 <p>3D_canvas</p>
             </div>
+            <div class="demo-card" @click="navigateTo('/workpie_object')">
+                <div class="card-icon">🔧</div>
+                <h2>workpie_object</h2>
+                <p>task_1</p>
+            </div>
         </div>
     </div>
 </template>

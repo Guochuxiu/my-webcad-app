@@ -4,6 +4,7 @@ import { CMD_TYPES } from '../command/cmd_types';
 import { TempCanvas } from './temp_canvas';
 import { TempViewHandle } from './temp_view_handle';
 
+//实现创建视图
 export class WebcadTemp extends WebCadApiBase<TemplateCmdParamTypes> {
     public static CMD_TYPES = CMD_TYPES;
 
