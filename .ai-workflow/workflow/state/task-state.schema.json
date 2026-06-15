@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/workflow/state/task-state.schema.json",
+  "title": "Workflow Task State Schema",
+  "type": "object",
+  "required": [
+    "task_id",
+    "title",
+    "lane",
+    "current_stage",
+    "status",
+    "artifacts"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["feature", "light-feature", "bugfix", "hotfix", "research"]
+    },
+    "current_stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["in_progress", "blocked", "done"]
+    },
+    "feedback_type": {
+      "type": ["string", "null"],
+      "enum": ["minor_revision", "scope_change", "goal_change", null]
+    },
+    "change_scope_level": {
+      "type": ["string", "null"],
+      "enum": ["small", "medium", "large", null]
+    },
+    "blocked_from_stage": {
+      "type": ["string", "null"]
+    },
+    "blocked_reason": {
+      "type": ["string", "null"]
+    },
+    "recovery_condition": {
+      "type": ["string", "null"]
+    },
+    "recovery_owner": {
+      "type": ["string", "null"]
+    },
+    "resume_target_stage": {
+      "type": ["string", "null"]
+    },
+    "user_confirmation": {
+      "type": "object",
+      "properties": {
+        "proposal_approved": {
+          "type": "boolean"
+        },
+        "implementation_approved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "review_gates": {
+      "type": "object",
+      "properties": {
+        "proposal_blockers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "proposal_high": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "code_blockers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "verification_passed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rounds": {
+      "type": "object",
+      "properties": {
+        "proposal_review_round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "code_review_round": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "version", "hash"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "hash": {
+            "type": "string"
+          },
+          "approved_version": {
+            "type": ["integer", "null"],
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "bound_artifact_set": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["integer", "string", "null"]
+      }
+    }
+  },
+  "additionalProperties": false
+}

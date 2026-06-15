@@ -1,0 +1,50 @@
+{
+  "run_id": "run-feat-user-search-001",
+  "task_id": "feat-user-search",
+  "lane": "feature",
+  "current_stage": "proposal_draft",
+  "checkpoint_id": "cp-feat-user-search-003",
+  "event_cursor": 3,
+  "checkpoint_payload": {
+    "current_stage": "proposal_draft",
+    "last_successful_transition": "requirements_frozen -> proposal_draft"
+  },
+  "pending_events": [],
+  "retry_count": 0,
+  "timeout_policy": {
+    "approval_wait_hours": 24,
+    "review_wait_hours": 12
+  },
+  "side_effects": [
+    {
+      "type": "write_artifact",
+      "target": "docs/requirements/feat-user-search.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "feat-user-search-req-v1",
+      "status": "completed"
+    }
+  ],
+  "idempotency_keys": [
+    "feat-user-search-req-v1",
+    "feat-user-search-proposal-v1"
+  ],
+  "artifact_versions": {
+    "requirements": {
+      "version": 1,
+      "hash": "sha256:req-user-search-v1",
+      "approved_version": 1
+    },
+    "proposal": {
+      "version": 1,
+      "hash": "sha256:proposal-user-search-v1",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "requirements_version": 1,
+    "proposal_version": 1
+  },
+  "review_trace": [],
+  "approval_trace": [],
+  "active_agent_run_ids": []
+}

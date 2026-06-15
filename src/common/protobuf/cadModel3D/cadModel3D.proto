@@ -1,0 +1,48 @@
+syntax = "proto3";
+ 
+package cadModel3D;
+ 
+option optimize_for = LITE_RUNTIME;
+ 
+message CADModels {
+  repeated CADModel models = 1;
+}
+ 
+message CADModel {
+  uint32 id = 1;
+  repeated Vertex vertices = 2;
+  repeated Edge edges = 3;
+  repeated Face faces = 4;
+  repeated Body bodies = 5;
+}
+ 
+message Vertex {
+  uint32 id = 1;
+  repeated float point = 2; // size == 3
+  uint32 color = 3; // rgba
+}
+ 
+message Edge {
+  uint32 id = 1;
+  repeated float points = 2;
+  uint32 color = 3; // rgba
+}
+ 
+message Face {
+  uint32 id = 1;
+  repeated uint32 ref_edges = 2; //关联edgeId
+  Mesh surface = 3;
+  uint32 color = 4; // rgba
+}
+ 
+message Mesh {
+  repeated float positions = 1;
+  repeated float normals = 2;
+  repeated uint32 indices = 3;
+}
+ 
+message Body {
+  uint32 id = 1;
+  repeated Edge edges = 2;
+ repeated Face faces = 3;
+}

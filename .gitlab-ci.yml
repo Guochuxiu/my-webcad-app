@@ -1,0 +1,78 @@
+stages:
+  - build
+ 
+# 设置为手动触发模式
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "api"'
+    - when: never
+ 
+variables:
+  NODE_VERSION: "18"
+ 
+# Global cache configuration - 持久缓存
+cache:
+  key: "${CI_COMMIT_REF_SLUG}-persistent"
+  paths:
+    - node_modules/
+    - .npm/
+  policy: pull-push
+ 
+# Build - runs for all pipelines
+build-dev:
+  stage: build
+  tags:
+    - runner124
+  image: node:${NODE_VERSION}
+  before_script:
+      - echo "🔧 配置NPM源和认证..."
+      - |
+        # 检查NPM_TOKEN
+        if [ -z "$NPM_TOKEN" ]; then
+          echo "❌ 缺少 NPM_TOKEN 环境变量"
+          exit 1
+        fi
+         
+        # 配置npm源 - 使用国内镜像
+        echo "📦 配置npm源（国内镜像）..."
+        npm config set registry https://registry.npmmirror.com/
+        npm config set @fscut:registry http://nexus.fscut.com/repository/fscut-npm/
+        npm config set @fsdev:registry http://nexus.fscut.com/repository/npm-dev/
+         
+        # 配置认证token
+        echo "🔐 配置认证token..."
+        echo "//nexus.fscut.com/repository/npm-dev/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+         
+        # 优化npm配置
+        echo "⚡ 优化npm配置..."
+        npm config set audit false
+        npm config set fund false
+        npm config set progress false
+         
+        echo "✅ npm配置完成"
+      - echo "📊 当前npm配置："
+      - npm config list
+      - echo "🚀 安装依赖..."
+      - npm install --no-audit --no-fund
+  script:
+    - echo "🏗️ 执行构建..."
+    - npm run build
+    - echo "✅ 构建完成"
+    - echo "🚀 开始发布 ${CURRENT_VERSION}..."
+    - npm publish
+    - echo "✅ 发布完成:${CURRENT_VERSION}"
+  rules:
+    - when: on_success
+ 
+# Cleanup
+cleanup:
+  stage: .post
+  tags:
+    - runner124
+  image: alpine:latest
+  script:
+    - echo "🧹 清理完成"
+  rules:
+    - when: always
+  allow_failure: true

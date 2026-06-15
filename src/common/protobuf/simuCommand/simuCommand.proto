@@ -1,0 +1,14 @@
+syntax = "proto3";
+ 
+package SimuCommand;
+ 
+message SimuCommand
+{
+    int32 op = 1;
+    repeated double axis = 2;
+}
+ 
+message SimuCommands
+{
+    repeated SimuCommand ops = 1;
+}

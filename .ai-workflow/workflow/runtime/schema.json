@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/workflow/runtime/schema.json",
+  "title": "Workflow Runtime Schema",
+  "type": "object",
+  "required": [
+    "run_id",
+    "task_id",
+    "lane",
+    "current_stage",
+    "checkpoint_id",
+    "event_cursor",
+    "side_effects",
+    "artifact_versions",
+    "active_agent_run_ids"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["feature", "light-feature", "bugfix", "hotfix", "research"]
+    },
+    "current_stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_cursor": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "checkpoint_payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "pending_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "lane": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "artifact_versions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["path", "version", "hash"],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "hash": {
+                  "type": "string"
+                },
+                "approved_version": {
+                  "type": ["integer", "null"],
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "bound_artifact_set": {
+            "type": "object",
+            "additionalProperties": {
+              "type": ["integer", "string", "null"]
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "retry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timeout_policy": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["integer", "string", "boolean", "null"]
+      }
+    },
+    "side_effects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "target", "replay_policy"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "replay_policy": {
+            "type": "string",
+            "enum": ["safe_to_replay", "read_only", "non_replayable"]
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed", "failed"]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "idempotency_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifact_versions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["version", "hash"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "hash": {
+            "type": "string"
+          },
+          "approved_version": {
+            "type": ["integer", "null"],
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "bound_artifact_set": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["integer", "string", "null"]
+      }
+    },
+    "review_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["review_type", "round", "reviewer", "disposition"],
+        "properties": {
+          "review_type": {
+            "type": "string"
+          },
+          "round": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reviewer": {
+            "type": "string"
+          },
+          "disposition": {
+            "type": "string",
+            "enum": ["approve", "approve_with_notes", "revise", "reject"]
+          },
+          "authoritative_reviewer_role": {
+            "type": "string"
+          },
+          "review_mode": {
+            "type": "string",
+            "enum": ["advisory", "blocking"]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "approval_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "active_agent_run_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

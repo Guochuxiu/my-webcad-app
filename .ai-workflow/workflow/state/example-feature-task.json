@@ -1,0 +1,46 @@
+{
+  "task_id": "feat-user-search",
+  "title": "用户搜索功能",
+  "lane": "feature",
+  "current_stage": "proposal_draft",
+  "status": "in_progress",
+  "feedback_type": null,
+  "change_scope_level": null,
+  "blocked_from_stage": null,
+  "blocked_reason": null,
+  "recovery_condition": null,
+  "recovery_owner": null,
+  "resume_target_stage": null,
+  "user_confirmation": {
+    "proposal_approved": false,
+    "implementation_approved": false
+  },
+  "review_gates": {
+    "proposal_blockers": 0,
+    "proposal_high": 0,
+    "code_blockers": 0,
+    "verification_passed": false
+  },
+  "rounds": {
+    "proposal_review_round": 0,
+    "code_review_round": 0
+  },
+  "artifacts": {
+    "requirements": {
+      "path": "docs/requirements/feat-user-search.md",
+      "version": 1,
+      "hash": "sha256:req-user-search-v1",
+      "approved_version": 1
+    },
+    "proposal": {
+      "path": "docs/proposals/feat-user-search.md",
+      "version": 1,
+      "hash": "sha256:proposal-user-search-v1",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "requirements_version": 1,
+    "proposal_version": 1
+  }
+}

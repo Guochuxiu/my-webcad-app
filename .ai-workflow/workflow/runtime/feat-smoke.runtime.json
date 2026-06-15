@@ -1,0 +1,57 @@
+{
+  "retry_count": 0,
+  "side_effects": [],
+  "timeout_policy": {},
+  "checkpoint_id": "cp-feat-smoke-002",
+  "checkpoint_payload": {
+    "last_successful_transition": "discovery -> knowledge_resolution",
+    "current_stage": "knowledge_resolution"
+  },
+  "run_id": "run-feat-smoke-001",
+  "idempotency_keys": [
+    "init-feat-smoke"
+  ],
+  "current_stage": "knowledge_resolution",
+  "event_cursor": 2,
+  "bound_artifact_set": {
+    "proposal_version": 1,
+    "requirements_version": 1
+  },
+  "artifact_versions": {
+    "requirements": {
+      "hash": "02df4906e7d08fb7d24597e21ff6fa1b60f192c7697657a9c0b86fae3cfce9ec",
+      "approved_version": null,
+      "version": 1
+    },
+    "proposal": {
+      "hash": "fa2e30b4f3083a11af605db2d851668ababb9a65a19aa3c56499259c78a937a6",
+      "approved_version": null,
+      "version": 1
+    }
+  },
+  "lane": "feature",
+  "approval_trace": [],
+  "task_id": "feat-smoke",
+  "active_agent_run_ids": [],
+  "review_trace": [],
+  "pending_events": [
+    {
+      "event_type": "context_collected",
+      "stage": "intake",
+      "idempotency_key": "feat-smoke-context_collected-1",
+      "timestamp": "2026-04-23T15:17:57+08:00",
+      "lane": "feature",
+      "actor": "operator",
+      "task_id": "feat-smoke"
+    },
+    {
+      "task_id": "feat-smoke",
+      "actor": "operator",
+      "lane": "feature",
+      "idempotency_key": "feat-smoke-knowledge_manifest_ready-2",
+      "stage": "discovery",
+      "timestamp": "2026-04-23T15:17:57+08:00",
+      "event_type": "knowledge_manifest_ready"
+    }
+  ]
+}

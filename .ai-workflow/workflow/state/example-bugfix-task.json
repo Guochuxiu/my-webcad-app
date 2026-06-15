@@ -1,0 +1,39 @@
+{
+  "task_id": "bug-login-timeout",
+  "title": "登录页偶发超时",
+  "lane": "bugfix",
+  "current_stage": "reproduction",
+  "status": "in_progress",
+  "feedback_type": null,
+  "change_scope_level": null,
+  "blocked_from_stage": null,
+  "blocked_reason": null,
+  "recovery_condition": null,
+  "recovery_owner": null,
+  "resume_target_stage": null,
+  "user_confirmation": {
+    "proposal_approved": false,
+    "implementation_approved": false
+  },
+  "review_gates": {
+    "proposal_blockers": 0,
+    "proposal_high": 0,
+    "code_blockers": 0,
+    "verification_passed": false
+  },
+  "rounds": {
+    "proposal_review_round": 0,
+    "code_review_round": 0
+  },
+  "artifacts": {
+    "bugfix_report": {
+      "path": "docs/bugs/bug-login-timeout-report.md",
+      "version": 1,
+      "hash": "sha256:bug-login-timeout-v1",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1
+  }
+}

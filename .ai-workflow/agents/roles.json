@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "roles": {
+    "orchestrator": {
+      "purpose": "Classify lane, read state/runtime, choose allowed next action, and enforce gates.",
+      "may_write": ["workflow/state/*.json", "workflow/runtime/*.json", "docs/handoffs/*.md"],
+      "must_not": ["implement code directly", "approve own work"]
+    },
+    "solution-writer": {
+      "purpose": "Write requirements, capability notes, proposal, and acceptance mapping.",
+      "may_write": ["docs/requirements/*.md", "docs/proposals/*.md", "docs/acceptance/*.md"],
+      "must_not": ["approve proposal", "perform final verification"]
+    },
+    "proposal-reviewer": {
+      "purpose": "Review proposal scope, risk, WebCAD fit, and acceptance mapping.",
+      "may_write": ["docs/reviews/*-proposal-review.md"],
+      "must_not": ["rewrite proposal silently", "approve own proposal", "implement code"]
+    },
+    "code-writer": {
+      "purpose": "Implement approved changes and update implementation evidence.",
+      "may_write": ["project source files", "tests", "docs/implementation/*.md"],
+      "must_not": ["approve own implementation", "skip code review"]
+    },
+    "code-reviewer": {
+      "purpose": "Review code diff, lifecycle, WebCAD extension points, tests, and regressions.",
+      "may_write": ["docs/reviews/*-code-review.md"],
+      "must_not": ["edit implementation while reviewing", "approve own code"]
+    },
+    "bugfix-writer": {
+      "purpose": "Reproduce defects, document root cause, implement minimal fix, and record regression evidence.",
+      "may_write": ["docs/bugs/*-report.md", "project source files", "tests"],
+      "must_not": ["claim fixed without reproduction", "skip regression verification"]
+    },
+    "verifier": {
+      "purpose": "Check acceptance criteria, review outcomes, tests, and workflow evidence before closure.",
+      "may_write": ["docs/verification/*.md", "docs/acceptance/*.md"],
+      "must_not": ["verify own implementation without evidence", "close with missing artifacts"]
+    }
+  }
+}

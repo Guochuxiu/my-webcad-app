@@ -1,0 +1,523 @@
+{
+  "weldSeams": [
+      {
+          "segments": [
+            {
+                  "uuid": "{3ea133bf-1c03-4912-9a86-1c8f2b590018}",
+                  "viewId": 634
+                }
+              ],
+          "uuid": "{91cddc62-6226-496a-a00c-33b1d92ed9b9}"
+      },
+      {
+          "segments": [
+              {
+                  "uuid": "{ea5ab7ed-31c5-4949-a227-fb7dc2c3da47}",
+                  "viewId": 636
+                }
+              ],
+          "uuid": "{b7646371-ab75-4d98-85de-0f32b451ba1b}"
+      },
+      {
+          "segments": [
+              {
+                  "uuid": "{9f9d1873-4eb7-45d8-ad7b-0d8b796d3262}",
+                  "viewId": 638
+                }
+              ],
+              "uuid": "{07a6a4d7-9466-4ad3-9845-5dea4633c7ff}"
+            },
+            {
+              "segments": [
+                {
+                  "uuid": "{bc7bb6bf-a278-4d7b-ae63-936c7cab42e5}",
+                  "viewId": 640
+                }
+              ],
+              "uuid": "{836e54b3-2353-4099-a231-9e7bee8a7d57}"
+            },
+            {
+              "segments": [
+                {
+                  "uuid": "{7eb3b340-ae74-4cf7-8965-32d442063b32}",
+                  "viewId": 642
+                }
+              ],
+              "uuid": "{70a78cee-f475-4006-8f7c-81bc8d0d770e}"
+            },
+            {
+              "segments": [
+                {
+                  "uuid": "{cf8eecb9-24bc-40c0-b83e-e23eb518bc9c}",
+                  "viewId": 644
+                }
+              ],
+          "uuid": "{031a3804-6c15-4944-bfa9-e6ef9825c810}"
+      },
+      {
+          "segments": [
+              {
+                  "uuid": "{25db5ffe-f488-4e59-a082-941ab11fad16}",
+                  "viewId": 646
+                }
+              ],
+          "uuid": "{05f6c8cf-32ed-4dd7-b63b-0913576fa1ed}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{a1cf090e-f0cd-4f8c-a30c-2956d25238b9}",
+            "viewId": 648
+          }
+        ],
+        "uuid": "{310b5a94-5470-4751-98e6-539ff5e2321d}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{56eb3e9d-9500-4b19-ab57-70ba3d102520}",
+            "viewId": 650
+          }
+        ],
+        "uuid": "{859c2230-d84e-4f98-9eee-69fadeca7e3f}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{fa076bc0-2f30-476c-960f-5a23ba367773}",
+            "viewId": 652
+          }
+        ],
+        "uuid": "{3f9d2254-7de6-447b-a33e-246897c2722f}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{60ab223f-1732-431c-8a86-a61effa82e9a}",
+            "viewId": 654
+          }
+        ],
+        "uuid": "{5da66ffd-826c-4cbd-acd6-dcd3f9f7b297}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{0336afcb-c268-4e31-b6a8-25136ff3c414}",
+            "viewId": 656
+          }
+        ],
+        "uuid": "{6ee39734-54e4-4b46-a0c4-959477f16978}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{762353eb-171f-48c8-bb0e-56402b4743f2}",
+            "viewId": 658
+          }
+        ],
+        "uuid": "{e221d918-5be6-477a-9b4d-8f198cf51b11}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{84b018bb-ecf7-4a8c-a8bb-9d9f7e680fa2}",
+            "viewId": 660
+          }
+        ],
+        "uuid": "{bd8030cb-9c25-48f7-88eb-cee7ef194df1}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{3e94154d-5259-4064-8f73-05450cf51705}",
+            "viewId": 662
+          }
+        ],
+        "uuid": "{144f1912-a581-4484-831f-e8080c9eae50}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{d5dda729-0b8d-4621-bf76-853eb6625cd2}",
+            "viewId": 664
+          }
+        ],
+        "uuid": "{b89b940b-f464-463d-934e-1f7e06864c8f}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{ecf62d84-8307-4136-8d9e-02268c4b9450}",
+            "viewId": 666
+          }
+        ],
+        "uuid": "{1e072ebb-a586-4d06-88c0-47aaa3ed8f3a}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{4984d41d-1b6c-4c2c-821c-8d56fec0d9b7}",
+            "viewId": 668
+          }
+        ],
+        "uuid": "{6ec22282-dc7e-491e-b931-6019a9652c63}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{af6e72df-8f3d-4157-8e4f-91c6647a5552}",
+            "viewId": 670
+          }
+        ],
+        "uuid": "{7ddf19c5-d9c9-4891-a560-c89cb1b523f6}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{2111094f-fd0e-4d6f-ac22-2e2ea94a025c}",
+            "viewId": 672
+          }
+        ],
+        "uuid": "{d64baa05-5970-44d3-9a6c-53b9ea11640f}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{939de83a-65b5-43aa-a707-c97e1d16b22d}",
+            "viewId": 674
+          }
+        ],
+        "uuid": "{a29a2897-5ae2-47bc-8a48-03565bf77422}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{b89e0d33-a074-4a16-a50e-f879fdaae7bd}",
+            "viewId": 676
+          }
+        ],
+        "uuid": "{46edc10a-d723-4a6d-b82a-3b43292d4503}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{3fe3e6a7-6a8a-41d2-b69a-cd950c577f68}",
+            "viewId": 678
+          }
+        ],
+        "uuid": "{f2ff3655-783a-4be9-ac2d-98e6560eb06c}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{8e11a38c-bf68-4986-bbf9-500803b60d15}",
+            "viewId": 680
+          }
+        ],
+        "uuid": "{8f061a7f-2ddd-4fbb-a461-0b4ce2ced7b6}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{4d89ab4e-1d74-47c6-9892-2890e33db7b8}",
+            "viewId": 682
+          }
+        ],
+        "uuid": "{2dcbef6a-b795-4a51-bf72-b0cff5f51952}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{ece4793b-db67-481a-92d7-9c5148a387ee}",
+            "viewId": 684
+          }
+        ],
+        "uuid": "{c6c321ea-6fa2-40e2-b908-9151b5867add}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{622947a9-8af7-47dc-9ef5-b732731d4c09}",
+            "viewId": 686
+          }
+        ],
+        "uuid": "{45e83e6e-4ff7-4078-8c8c-e9c8677d4aca}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{ca882aec-8e11-4d7e-9321-08a18aed9f93}",
+            "viewId": 688
+          }
+        ],
+        "uuid": "{d5408ba8-af81-4e33-bcea-50e7d1778958}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{f646cc3c-8bf3-44f1-ac0a-8ba6fe39a01d}",
+            "viewId": 690
+          }
+        ],
+        "uuid": "{7c5fd7a6-ded4-40d0-b620-d0c6f90ec15c}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{dc53d4f3-8d99-420a-b73b-ca7f79f0b8d6}",
+            "viewId": 692
+          }
+        ],
+        "uuid": "{0a8c5f2b-a106-4d4e-95f3-8d589a51994d}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{af12455d-d6aa-4d60-8138-f2fe22104175}",
+            "viewId": 694
+          }
+        ],
+        "uuid": "{e92d0746-ab8c-4933-ba12-f33b4f961cbc}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{64b99b19-2666-49d7-b401-c36366ff2c1c}",
+            "viewId": 696
+          }
+        ],
+        "uuid": "{b50a5692-46bd-4b9e-ac90-4792a67e4e46}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{0620e895-724f-4f3f-b33a-2c320b54be84}",
+            "viewId": 698
+          }
+        ],
+        "uuid": "{e0157221-944b-4330-bbd0-bd5c31a6faca}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{2ac06433-330d-402f-ab91-b449b5d62b3b}",
+            "viewId": 700
+          }
+        ],
+        "uuid": "{5723e39b-ddd1-49b7-a03d-ba57c1220082}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{70137ca2-3856-4262-97be-2ca5c7c2889e}",
+            "viewId": 702
+          }
+        ],
+        "uuid": "{f45b8cf8-792b-4892-aef9-55b3156b4f37}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{6486df58-2cea-4799-bb90-c8e486a855a5}",
+            "viewId": 704
+          }
+        ],
+        "uuid": "{0bf47a43-220b-4549-a3d6-4af11bfe0504}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{26457a4c-25b8-4772-abd6-7706673c187f}",
+            "viewId": 706
+          }
+        ],
+        "uuid": "{9dba93e5-e749-4ce5-9d43-093c620a7517}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{8ad5dd35-6fed-4dde-b8ec-17195918ace0}",
+            "viewId": 708
+          }
+        ],
+        "uuid": "{cfefc07c-5fc7-407e-92fd-16950720a225}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{8dc8575c-0905-4ec3-8197-afd080e96d3c}",
+            "viewId": 710
+          }
+        ],
+        "uuid": "{5c5b303e-6fe3-4dbe-9c54-39a7447fe64c}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{af627f9f-cb23-4f1e-a06a-fa4d302daf3f}",
+            "viewId": 712
+          }
+        ],
+        "uuid": "{62fd7849-51f8-4a76-b420-da64b51c70b1}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{15a25c79-0738-4374-9aed-e708ad15289f}",
+            "viewId": 714
+          }
+        ],
+        "uuid": "{3330ebf2-81df-44e3-97c2-dc804bcf5f9a}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{77f528c6-71a0-43f9-8341-9f76d5e21b88}",
+            "viewId": 716
+          }
+        ],
+        "uuid": "{5453ac36-52b5-40f4-ba56-a1e29eb4d834}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{58860464-6db8-4325-9c78-be08af174181}",
+            "viewId": 718
+          }
+        ],
+        "uuid": "{14a8d79d-a927-4e2a-a82c-1de47d773488}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{4962ced3-2608-4c2c-bfb3-8707980e7316}",
+            "viewId": 720
+          }
+        ],
+        "uuid": "{ad636934-bb91-4005-81ba-78fc06ac3cba}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{033de478-47d7-4b89-afd6-7825a7e4da80}",
+            "viewId": 722
+          }
+        ],
+        "uuid": "{382ed1b6-f944-4554-8c40-4141b73b106d}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{1a013d83-c7c0-46ec-9fd0-1919f59b55f7}",
+            "viewId": 724
+          }
+        ],
+        "uuid": "{ffdb2134-9046-4e53-a8f7-e6a43a6c2d19}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{328ca79a-d838-4d4e-97eb-1340362ba794}",
+            "viewId": 726
+          }
+        ],
+        "uuid": "{4b9e7963-2ac6-45ab-b4d9-41f85e42c7a9}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{eb310a01-b63c-4e8e-8c4b-09157608412b}",
+            "viewId": 728
+          }
+        ],
+        "uuid": "{095a9270-ea50-4303-a3c5-e26fec93648d}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{f1710b9b-e770-48a2-81eb-219672537103}",
+            "viewId": 730
+          }
+        ],
+        "uuid": "{9d604830-f392-4303-b3a9-0a9405256485}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{2a1290e6-f42b-4f84-ab9d-c8e27f66e56b}",
+            "viewId": 732
+          }
+        ],
+        "uuid": "{7b9e1daf-0677-471a-a184-3b62791535e5}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{be409e9d-d578-4056-94df-0863f7083ee5}",
+            "viewId": 734
+          }
+        ],
+        "uuid": "{e9d50521-3ca0-470d-8e51-601ce639f423}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{cb362b14-a126-4389-89cb-bd9842a3cfe0}",
+            "viewId": 736
+          }
+        ],
+        "uuid": "{b7e697fc-f7ab-4371-b91e-7d4d5ee5dd63}"
+      },
+      {
+        "segments": [
+          {
+            "uuid": "{40d10212-a002-4400-93e8-74a8a2ee6ce1}",
+            "viewId": 738
+          }
+        ],
+        "uuid": "{125bcaf7-a350-413c-bd4b-2be282d4272c}"
+      }
+  ],
+  "workpieces": [
+      {
+          "uuid": "{fa4b46b2-9e10-47bf-b38e-3996f1157393}",
+          "viewId": 39
+      },
+      {
+          "uuid": "{0caa1368-91b5-4d8a-bcd2-d079771b12f0}",
+          "viewId": 78
+      },
+      {
+          "uuid": "{4a196f19-d84a-430b-a9b5-ab9475db2886}",
+          "viewId": 117
+      },
+      {
+          "uuid": "{50551c39-4c07-485a-b022-ce748e46356b}",
+          "viewId": 156
+      },
+      {
+          "uuid": "{b7c66e74-ea78-4397-b427-a89313032b44}",
+          "viewId": 195
+      },
+      {
+          "uuid": "{c2e81e91-9713-4344-9d18-c97bc71215a0}",
+          "viewId": 234
+      },
+      {
+          "uuid": "{fbe815f0-b91a-45e3-bf50-23882879564e}",
+          "viewId": 273
+      },
+      {
+        "uuid": "{e52912ae-8a40-4362-aed0-27f3ccd3c924}",
+        "viewId": 542
+      },
+      {
+        "uuid": "{82d12c97-e4de-457c-8d55-ed11a8ea98aa}",
+        "viewId": 595
+      },
+      {
+        "uuid": "{41b4934a-95fb-4d40-9c62-ff35f979197e}",
+        "viewId": 632
+      }
+  ]
+}

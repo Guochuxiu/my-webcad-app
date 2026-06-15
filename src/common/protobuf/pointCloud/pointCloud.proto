@@ -1,0 +1,19 @@
+
+syntax = "proto3";
+ 
+package pointCloud;
+ 
+option optimize_for = LITE_RUNTIME;
+ 
+message PointCloud {
+  uint32 id = 1;
+  repeated float data = 2; // 每三个float值表示一个点
+ oneof color_spec {
+    uint32 uniform_color = 3; // 总体颜色
+   uint32 colors = 4; // 单点颜色，size == data.size() / 3
+  }
+}
+ 
+message PointClouds {
+  repeated PointCloud point_clouds = 1;
+}

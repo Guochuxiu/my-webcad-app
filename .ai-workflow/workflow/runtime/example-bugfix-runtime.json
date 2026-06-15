@@ -1,0 +1,43 @@
+{
+  "run_id": "run-bug-login-timeout-001",
+  "task_id": "bug-login-timeout",
+  "lane": "bugfix",
+  "current_stage": "reproduction",
+  "checkpoint_id": "cp-bug-login-timeout-002",
+  "event_cursor": 2,
+  "checkpoint_payload": {
+    "current_stage": "reproduction",
+    "last_successful_transition": "knowledge_resolution -> reproduction"
+  },
+  "pending_events": [],
+  "retry_count": 1,
+  "timeout_policy": {
+    "diagnostic_wait_hours": 12,
+    "review_wait_hours": 8
+  },
+  "side_effects": [
+    {
+      "type": "write_artifact",
+      "target": "docs/bugs/bug-login-timeout-report.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "bug-login-timeout-report-v1",
+      "status": "completed"
+    }
+  ],
+  "idempotency_keys": [
+    "bug-login-timeout-report-v1"
+  ],
+  "artifact_versions": {
+    "bugfix_report": {
+      "version": 1,
+      "hash": "sha256:bug-login-timeout-v1",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1
+  },
+  "review_trace": [],
+  "approval_trace": [],
+  "active_agent_run_ids": []
+}

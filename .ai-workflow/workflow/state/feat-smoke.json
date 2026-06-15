@@ -1,0 +1,46 @@
+{
+  "task_id": "feat-smoke",
+  "rounds": {
+    "code_review_round": 0,
+    "proposal_review_round": 0
+  },
+  "blocked_reason": null,
+  "blocked_from_stage": null,
+  "change_scope_level": null,
+  "resume_target_stage": null,
+  "feedback_type": null,
+  "artifacts": {
+    "requirements": {
+      "path": "docs/requirements/feat-smoke.md",
+      "approved_version": null,
+      "hash": "02df4906e7d08fb7d24597e21ff6fa1b60f192c7697657a9c0b86fae3cfce9ec",
+      "version": 1
+    },
+    "proposal": {
+      "path": "docs/proposals/feat-smoke.md",
+      "approved_version": null,
+      "hash": "fa2e30b4f3083a11af605db2d851668ababb9a65a19aa3c56499259c78a937a6",
+      "version": 1
+    }
+  },
+  "recovery_condition": null,
+  "current_stage": "knowledge_resolution",
+  "lane": "feature",
+  "user_confirmation": {
+    "proposal_approved": false,
+    "implementation_approved": false
+  },
+  "review_gates": {
+    "proposal_high": 0,
+    "verification_passed": false,
+    "code_blockers": 0,
+    "proposal_blockers": 0
+  },
+  "recovery_owner": null,
+  "title": "Smoke Feature",
+  "bound_artifact_set": {
+    "proposal_version": 1,
+    "requirements_version": 1
+  },
+  "status": "in_progress"
+}
