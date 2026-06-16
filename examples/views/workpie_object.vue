@@ -3,13 +3,18 @@
         <div ref="containerRef" class="canvas-host"></div>
         <section class="control-panel">
             <div class="panel-header">
-                <span class="panel-title">Simple Workpiece</span>
-                <span class="panel-subtitle">Command / Entity / Display</span>
+                <span class="panel-title">Simple Workpiece & Conveyor</span>
+                <span class="panel-subtitle">Command / Entity / Display / Device State</span>
             </div>
             <div class="button-row">
                 <button type="button" @click="createWorkpiece('box')">创建立方体</button>
                 <button type="button" @click="createWorkpiece('cylinder')">创建圆柱体</button>
                 <button type="button" :disabled="!canMoveSelected" @click="moveSelectedWorkpiece">移动到 B 点</button>
+            </div>
+            <div class="button-row">
+                <button type="button" @click="createConveyor">创建传送带</button>
+                <button type="button" :disabled="!canStartConveyor" @click="startConveyor">启动传送带</button>
+                <button type="button" :disabled="!canStopConveyor" @click="stopConveyor">停止传送带</button>
             </div>
             <div class="info-panel">
                 <div class="info-title">选中工件</div>
@@ -51,6 +56,42 @@
                 </template>
                 <p v-else class="empty-text">点击工件本体、特征线或特征点查看数字孪生信息。</p>
             </div>
+            <div class="info-panel">
+                <div class="info-title">选中传送带</div>
+                <template v-if="selectedConveyorInfo">
+                    <dl>
+                        <div>
+                            <dt>业务 ID</dt>
+                            <dd>{{ selectedConveyorInfo.conveyorId }}</dd>
+                        </div>
+                        <div>
+                            <dt>状态</dt>
+                            <dd>{{ selectedConveyorInfo.status }}</dd>
+                        </div>
+                        <div>
+                            <dt>起点</dt>
+                            <dd>{{ selectedConveyorInfo.startPoint }}</dd>
+                        </div>
+                        <div>
+                            <dt>终点</dt>
+                            <dd>{{ selectedConveyorInfo.endPoint }}</dd>
+                        </div>
+                        <div>
+                            <dt>方向</dt>
+                            <dd>{{ selectedConveyorInfo.direction }}</dd>
+                        </div>
+                        <div>
+                            <dt>速度</dt>
+                            <dd>{{ selectedConveyorInfo.speed }}</dd>
+                        </div>
+                        <div>
+                            <dt>容量</dt>
+                            <dd>{{ selectedConveyorInfo.capacity }}</dd>
+                        </div>
+                    </dl>
+                </template>
+                <p v-else class="empty-text">创建或选中传送带后查看设备状态。</p>
+            </div>
         </section>
     </div>
 </template>
@@ -58,15 +99,32 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { WebcadTemp } from '@/projects/template';
-import type { SimpleWorkpiece, WorkpieceMoveProgressEvent, WorkpieceType } from '@/projects/template';
+import type {
+    ConveyorEntity,
+    ConveyorStatus,
+    ConveyorStatusChangeEvent,
+    SimpleWorkpiece,
+    WorkpieceMoveProgressEvent,
+    WorkpieceType
+} from '@/projects/template';
 import type { TempViewHandle } from '@/projects/template/view/temp_view_handle';
 
-const VIEW_KEY = 'workpiece-task-2';
+const VIEW_KEY = 'workpiece-task-3';
 const containerRef = ref<HTMLDivElement | null>(null);
 const selectedWorkpiece = ref<SimpleWorkpiece | null>(null);
+const selectedConveyor = ref<ConveyorEntity | null>(null);
 const selectedWorkpieceInfo = ref<{
     state: string;
     remainingText: string;
+} | null>(null);
+const selectedConveyorInfo = ref<{
+    conveyorId: string;
+    startPoint: string;
+    endPoint: string;
+    direction: string;
+    speed: number;
+    capacity: number;
+    status: ConveyorStatus;
 } | null>(null);
 
 let app: WebcadTemp | null = null;
@@ -77,6 +135,12 @@ let createdCount = 0;
 
 const canMoveSelected = computed(() => {
     return Boolean(selectedWorkpiece.value) && selectedWorkpieceInfo.value?.state === 'waiting';
+});
+const canStartConveyor = computed(() => {
+    return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status !== 'running';
+});
+const canStopConveyor = computed(() => {
+    return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status === 'running';
 });
 
 const featureSummary = computed(() => {
@@ -121,18 +185,29 @@ onMounted(async () => {
     // 选择事件返回的是实体 id；可能命中工件子实体，所以通过 handle 反查父级 SimpleWorkpiece。
     stopSelectionListen = viewHandle.onSelectionChange.listen(event => {
         selectedWorkpiece.value = viewHandle?.findSimpleWorkpieceByEntityIds(event.selectedIds) ?? null;
+        selectedConveyor.value = viewHandle?.findConveyorByEntityIds(event.selectedIds) ?? null;
         refreshSelectedWorkpieceInfo();
+        refreshSelectedConveyorInfo();
     });
 
     stopChangeListen = viewHandle.onChange.listen(event => {
         if (event.type !== 'command') return;
 
-        const data = event.payload.data as WorkpieceMoveProgressEvent | undefined;
+        const data = event.payload?.data as WorkpieceMoveProgressEvent | ConveyorStatusChangeEvent | undefined;
 
-        if (data?.type !== 'workpieceMoveProgress') return;
-        if (selectedWorkpiece.value?.id !== data.workpieceId) return;
+        if (data?.type === 'workpieceMoveProgress') {
+            if (selectedWorkpiece.value?.id !== data.workpieceId) return;
 
-        refreshSelectedWorkpieceInfo();
+            refreshSelectedWorkpieceInfo();
+
+            return;
+        }
+
+        if (data?.type === 'conveyorStatusChange') {
+            if (selectedConveyor.value?.id !== data.conveyorId) return;
+
+            refreshSelectedConveyorInfo();
+        }
     });
 });
 
@@ -143,7 +218,9 @@ onUnmounted(async () => {
     stopSelectionListen = null;
     stopChangeListen = null;
     selectedWorkpiece.value = null;
+    selectedConveyor.value = null;
     selectedWorkpieceInfo.value = null;
+    selectedConveyorInfo.value = null;
     await viewHandle?.dispose();
     viewHandle = null;
     app = null;
@@ -178,6 +255,38 @@ async function moveSelectedWorkpiece() {
     refreshSelectedWorkpieceInfo();
 }
 
+async function createConveyor() {
+    if (!viewHandle) return;
+
+    await viewHandle.createConveyor({
+        id: 'conveyor_01',
+        startPoint: [0, 0, 0],
+        endPoint: [800, 0, 0],
+        speed: 100,
+        capacity: 2
+    });
+    selectedConveyor.value = viewHandle.findFirstConveyor();
+    refreshSelectedConveyorInfo();
+}
+
+async function startConveyor() {
+    await setSelectedConveyorStatus('running');
+}
+
+async function stopConveyor() {
+    await setSelectedConveyorStatus('stopped');
+}
+
+async function setSelectedConveyorStatus(status: ConveyorStatus) {
+    if (!viewHandle || !selectedConveyor.value) return;
+
+    await viewHandle.setConveyorStatus({
+        conveyorId: selectedConveyor.value.id,
+        status
+    });
+    refreshSelectedConveyorInfo();
+}
+
 function refreshSelectedWorkpieceInfo() {
     const workpiece = selectedWorkpiece.value;
 
@@ -187,6 +296,26 @@ function refreshSelectedWorkpieceInfo() {
             remainingText: `${workpiece.remaining.toFixed(1)}s`
         }
         : null;
+}
+
+function refreshSelectedConveyorInfo() {
+    const conveyor = selectedConveyor.value;
+
+    selectedConveyorInfo.value = conveyor
+        ? {
+            conveyorId: conveyor.conveyorId,
+            startPoint: formatPoint(conveyor.startPoint),
+            endPoint: formatPoint(conveyor.endPoint),
+            direction: formatPoint(conveyor.direction),
+            speed: conveyor.speed,
+            capacity: conveyor.capacity,
+            status: conveyor.status
+        }
+        : null;
+}
+
+function formatPoint(point: [number, number, number]): string {
+    return `[${point.map(value => Number(value.toFixed(2))).join(', ')}]`;
 }
 </script>
 
@@ -268,6 +397,7 @@ button:disabled:hover {
 .info-panel {
     border-top: 1px solid #d8dee9;
     padding-top: 12px;
+    margin-top: 12px;
 }
 
 .info-title,

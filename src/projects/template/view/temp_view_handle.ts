@@ -3,8 +3,11 @@ import { TempCanvas } from './temp_canvas';
 import type { ImportModelParams } from '../command/cmd_import_model';
 import type { CreateSimpleWorkpieceParams } from '../command/cmd_create_simple_workpiece';
 import type { MoveWorkpieceParams } from '../command/cmd_move_workpiece';
+import type { CreateConveyorParams } from '../command/cmd_create_conveyor';
+import type { SetConveyorStatusParams } from '../command/cmd_set_conveyor_status';
 import { CMD_TYPES } from '../command/cmd_types';
 import { SimpleWorkpiece } from '../model/workpiece';
+import { ConveyorEntity } from '../model/conveyor';
 
 //Handle 层负责把底层 Canvas 能力包装成 UI 容易调用的业务方法
 //创建工件
@@ -20,6 +23,14 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
 
     public moveWorkpiece(params: MoveWorkpieceParams): Promise<void> {
         return this.executeCommand(CMD_TYPES.MOVE_WORKPIECE, params);
+    }
+
+    public createConveyor(params?: CreateConveyorParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.CREATE_CONVEYOR, params);
+    }
+
+    public setConveyorStatus(params: SetConveyorStatusParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.SET_CONVEYOR_STATUS, params);
     }
 
     /**
@@ -39,5 +50,26 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
         }
 
         return null;
+    }
+
+    public findConveyorByEntityIds(ids: number[]): ConveyorEntity | null {
+        for (const id of ids) {
+            let entity = this._canvas.app.doc.getEntity(id);
+
+            while (entity) {
+                if (entity instanceof ConveyorEntity) {
+                    return entity;
+                }
+                entity = entity.parent;
+            }
+        }
+
+        return null;
+    }
+
+    public findFirstConveyor(): ConveyorEntity | null {
+        const entity = this._canvas.app.doc.entityList.find(item => item instanceof ConveyorEntity);
+
+        return entity instanceof ConveyorEntity ? entity : null;
     }
 }
