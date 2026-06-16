@@ -1,6 +1,6 @@
 import { FSCore } from '@fs/cadnginx';
 
-export type ConveyorStatus = 'idle' | 'running' | 'stopped';
+export type ConveyorStatus = 'idle' | 'running' | 'stopped' | 'blocked';
 export type ConveyorPoint = [number, number, number];
 
 export interface ConveyorMeta {

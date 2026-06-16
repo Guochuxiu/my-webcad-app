@@ -5,7 +5,9 @@ import { PickPriority } from '@/common/core/pick_strategy/pick_strategy';
 import { registerCmd } from '../command/cmd_register';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { ConveyorEntity } from '../model/conveyor';
+import { PipelineEntity } from '../model/pipeline';
 import { ConveyorDisplay } from '../display/conveyor';
+import { PipelineDisplay } from '../display/pipeline';
 
 //业务canvas，
 // 包含dispaly注册实现 Entity -> Display 映射机制
@@ -36,6 +38,7 @@ export class TempCanvas extends Base3DCanvas {
         this.registerDisplayType(FSCore.Model.BatchLine, e => this.createDisplay(e, Display.BatchLineDisplay));
         this.registerDisplayType(FSCore.Model.BatchPoint, e => this.createDisplay(e, Display.BatchPointDisplay));
         this.registerDisplayType(ConveyorEntity, e => this.createDisplay(e, ConveyorDisplay));
+        this.registerDisplayType(PipelineEntity, e => this.createDisplay(e, PipelineDisplay));
     }
 
     protected _registerPickHelper(): void {

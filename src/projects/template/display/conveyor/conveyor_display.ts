@@ -179,7 +179,7 @@ export class ConveyorDisplay extends FSApp.View.Three.ThreeDisplay<ConveyorEntit
     private _applyStatusStyle(): void {
         const status = this.entity.status;
         const beltColor = this._getBeltColor(status);
-        const arrowColor = status === 'running' ? 0x0ea5e9 : 0x94a3b8;
+        const arrowColor = status === 'blocked' ? 0xef4444 : status === 'running' ? 0x0ea5e9 : 0x94a3b8;
 
         this._materials.forEach((material, index) => {
             if (!(material instanceof THREE.MeshBasicMaterial)) return;
@@ -240,6 +240,7 @@ export class ConveyorDisplay extends FSApp.View.Three.ThreeDisplay<ConveyorEntit
 
     private _getBeltColor(status: ConveyorStatus): number {
         if (status === 'running') return 0x38bdf8;
+        if (status === 'blocked') return 0xef4444;
         if (status === 'stopped') return 0x64748b;
 
         return 0x8fa3b8;

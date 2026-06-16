@@ -3,19 +3,68 @@
         <div ref="containerRef" class="canvas-host"></div>
         <section class="control-panel">
             <div class="panel-header">
-                <span class="panel-title">Simple Workpiece & Conveyor</span>
-                <span class="panel-subtitle">Command / Entity / Display / Device State</span>
+                <span class="panel-title">Workpiece Logistics Demo</span>
+                <span class="panel-subtitle">Warehouse / Load / Conveyor / Unload</span>
             </div>
+
             <div class="button-row">
                 <button type="button" @click="createWorkpiece('box')">创建立方体</button>
                 <button type="button" @click="createWorkpiece('cylinder')">创建圆柱体</button>
-                <button type="button" :disabled="!canMoveSelected" @click="moveSelectedWorkpiece">移动到 B 点</button>
-            </div>
-            <div class="button-row">
                 <button type="button" @click="createConveyor">创建传送带</button>
+            </div>
+
+            <div class="button-row">
                 <button type="button" :disabled="!canStartConveyor" @click="startConveyor">启动传送带</button>
                 <button type="button" :disabled="!canStopConveyor" @click="stopConveyor">停止传送带</button>
+                <button type="button" :disabled="!canTickConveyor" @click="tickConveyorOnce">单步 Tick</button>
             </div>
+
+            <div class="button-row">
+                <button type="button" :disabled="!canLoad" @click="loadWorkpiece">上料</button>
+                <button type="button" :disabled="!canUnload" @click="unloadWorkpiece">下料</button>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-title">物流状态</div>
+                <template v-if="logisticsInfo">
+                    <dl>
+                        <div>
+                            <dt>当前时间</dt>
+                            <dd>{{ logisticsInfo.currentTimeText }}</dd>
+                        </div>
+                        <div>
+                            <dt>传送带状态</dt>
+                            <dd>{{ logisticsInfo.conveyorStatus }}</dd>
+                        </div>
+                        <div>
+                            <dt>仓库等待</dt>
+                            <dd>{{ logisticsInfo.waitingCount }}</dd>
+                        </div>
+                        <div>
+                            <dt>传送中</dt>
+                            <dd>{{ logisticsInfo.conveyingCount }}</dd>
+                        </div>
+                        <div>
+                            <dt>B 点等待</dt>
+                            <dd>{{ logisticsInfo.exitWaitingCount }}</dd>
+                        </div>
+                        <div>
+                            <dt>阻塞原因</dt>
+                            <dd>{{ logisticsInfo.blockedReason }}</dd>
+                        </div>
+                        <div>
+                            <dt>工作台</dt>
+                            <dd>{{ logisticsInfo.worktableStatus }}</dd>
+                        </div>
+                        <div>
+                            <dt>传送带容量</dt>
+                            <dd>{{ selectedConveyorInfo?.capacity ?? '-' }}</dd>
+                        </div>
+                    </dl>
+                </template>
+                <p v-else class="empty-text">创建传送带和工件后，可以按“上料 -> 启动传送带 -> 下料”推进流程。</p>
+            </div>
+
             <div class="info-panel">
                 <div class="info-title">选中工件</div>
                 <template v-if="selectedWorkpiece">
@@ -33,7 +82,7 @@
                             <dd>{{ selectedWorkpieceInfo?.remainingText }}</dd>
                         </div>
                         <div>
-                            <dt>库位</dt>
+                            <dt>位置</dt>
                             <dd>{{ selectedWorkpiece.location }}</dd>
                         </div>
                         <div>
@@ -56,6 +105,7 @@
                 </template>
                 <p v-else class="empty-text">点击工件本体、特征线或特征点查看数字孪生信息。</p>
             </div>
+
             <div class="info-panel">
                 <div class="info-title">选中传送带</div>
                 <template v-if="selectedConveyorInfo">
@@ -103,13 +153,24 @@ import type {
     ConveyorEntity,
     ConveyorStatus,
     ConveyorStatusChangeEvent,
+    LogisticsBlockedReason,
+    LogisticsSnapshot,
+    LogisticsSnapshotEvent,
     SimpleWorkpiece,
-    WorkpieceMoveProgressEvent,
-    WorkpieceType
+    WorkpieceType,
 } from '@/projects/template';
 import type { TempViewHandle } from '@/projects/template/view/temp_view_handle';
 
-const VIEW_KEY = 'workpiece-task-3';
+const VIEW_KEY = 'workpiece-prd1';
+const TICK_SECONDS = 0.3;
+const BLOCKED_REASON_LABELS: Record<LogisticsBlockedReason, string> = {
+    none: '无',
+    conveyor_full: '传送带容量已满',
+    conveyor_entry_occupied: '入口被占用',
+    conveyor_exit_occupied: 'B 点有工件等待下料',
+    worktable_busy: '工作台忙',
+};
+
 const containerRef = ref<HTMLDivElement | null>(null);
 const selectedWorkpiece = ref<SimpleWorkpiece | null>(null);
 const selectedConveyor = ref<ConveyorEntity | null>(null);
@@ -126,22 +187,37 @@ const selectedConveyorInfo = ref<{
     capacity: number;
     status: ConveyorStatus;
 } | null>(null);
+const logisticsInfo = ref<{
+    currentTimeText: string;
+    conveyorStatus: string;
+    waitingCount: number;
+    conveyingCount: number;
+    exitWaitingCount: number;
+    blockedReason: string;
+    worktableStatus: string;
+} | null>(null);
+const lastSnapshot = ref<LogisticsSnapshot | null>(null);
 
 let app: WebcadTemp | null = null;
 let viewHandle: TempViewHandle | null = null;
 let stopSelectionListen: (() => void) | null = null;
 let stopChangeListen: (() => void) | null = null;
-let createdCount = 0;
+let conveyorTimer: ReturnType<typeof window.setInterval> | null = null;
+let conveyorTicking = false;
 
-const canMoveSelected = computed(() => {
-    return Boolean(selectedWorkpiece.value) && selectedWorkpieceInfo.value?.state === 'waiting';
-});
 const canStartConveyor = computed(() => {
     return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status !== 'running';
 });
 const canStopConveyor = computed(() => {
-    return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status === 'running';
+    return Boolean(selectedConveyor.value)
+        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked');
 });
+const canTickConveyor = computed(() => {
+    return Boolean(selectedConveyor.value)
+        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked');
+});
+const canLoad = computed(() => Boolean(selectedConveyor.value) && Boolean(lastSnapshot.value?.canLoad));
+const canUnload = computed(() => Boolean(lastSnapshot.value?.canUnload));
 
 const featureSummary = computed(() => {
     const workpiece = selectedWorkpiece.value;
@@ -162,56 +238,57 @@ onMounted(async () => {
         common: {
             backgroundColor: 0xf5f7fb,
             backgroundOpacity: 1,
-            useAxes: true
+            useAxes: true,
         },
         camera: {
             orthographic: {
-                x: 260,
-                y: 260,
-                z: 360,
-                up: [0, 0, 1]
-            }
+                x: 420,
+                y: 360,
+                z: 520,
+                up: [0, 0, 1],
+            },
         },
         viewCube: {
             visible: true,
             size: 160,
-            position: { right: 24, top: 2 }
+            position: { right: 24, top: 2 },
         },
         orbitControls: {
-            lockUp: false
-        }
+            lockUp: false,
+        },
     });
 
-    // 选择事件返回的是实体 id；可能命中工件子实体，所以通过 handle 反查父级 SimpleWorkpiece。
+    // 选中特征子实体时向上找到业务父实体，UI 只展示业务对象状态。
     stopSelectionListen = viewHandle.onSelectionChange.listen(event => {
         selectedWorkpiece.value = viewHandle?.findSimpleWorkpieceByEntityIds(event.selectedIds) ?? null;
-        selectedConveyor.value = viewHandle?.findConveyorByEntityIds(event.selectedIds) ?? null;
-        refreshSelectedWorkpieceInfo();
-        refreshSelectedConveyorInfo();
+        selectedConveyor.value = viewHandle?.findConveyorByEntityIds(event.selectedIds) ?? selectedConveyor.value;
+        refreshAllInfo();
     });
 
     stopChangeListen = viewHandle.onChange.listen(event => {
         if (event.type !== 'command') return;
 
-        const data = event.payload?.data as WorkpieceMoveProgressEvent | ConveyorStatusChangeEvent | undefined;
-
-        if (data?.type === 'workpieceMoveProgress') {
-            if (selectedWorkpiece.value?.id !== data.workpieceId) return;
-
-            refreshSelectedWorkpieceInfo();
-
-            return;
-        }
+        const data = event.payload?.data as
+            | ConveyorStatusChangeEvent
+            | LogisticsSnapshotEvent
+            | undefined;
 
         if (data?.type === 'conveyorStatusChange') {
-            if (selectedConveyor.value?.id !== data.conveyorId) return;
-
-            refreshSelectedConveyorInfo();
+            selectedConveyor.value = viewHandle?.findFirstConveyor() ?? selectedConveyor.value;
         }
+
+        if (data?.type === 'logisticsSnapshot') {
+            applySnapshot(data);
+        }
+
+        refreshAllInfo();
     });
+
+    refreshAllInfo();
 });
 
 onUnmounted(async () => {
+    stopConveyorTimer();
     viewHandle?.cancelCommand();
     stopSelectionListen?.();
     stopChangeListen?.();
@@ -221,6 +298,8 @@ onUnmounted(async () => {
     selectedConveyor.value = null;
     selectedWorkpieceInfo.value = null;
     selectedConveyorInfo.value = null;
+    logisticsInfo.value = null;
+    lastSnapshot.value = null;
     await viewHandle?.dispose();
     viewHandle = null;
     app = null;
@@ -229,30 +308,8 @@ onUnmounted(async () => {
 async function createWorkpiece(type: WorkpieceType) {
     if (!viewHandle) return;
 
-    // 每次创建向 X 方向错开，方便同时观察立方体和圆柱体。
-    const centerX = createdCount * 180;
-    createdCount += 1;
-
-    // 示例页只调用业务 handle；真正创建动作由 CreateSimpleWorkpieceCommand 完成。
-    await viewHandle.createSimpleWorkpiece({
-        type,
-        center: [centerX, 0, 0]
-    });
-}
-
-async function moveSelectedWorkpiece() {
-    if (!viewHandle || !selectedWorkpiece.value || selectedWorkpiece.value.state !== 'waiting') return;
-
-    const workpiece = selectedWorkpiece.value;
-
-    await viewHandle.moveWorkpiece({
-        workpieceId: workpiece.id,
-        from: workpiece.getPositionTuple(),
-        to: [500, 0, 0],
-        duration: 3.0
-    });
-
-    refreshSelectedWorkpieceInfo();
+    await viewHandle.createSimpleWorkpiece({ type });
+    refreshAllInfo();
 }
 
 async function createConveyor() {
@@ -263,17 +320,19 @@ async function createConveyor() {
         startPoint: [0, 0, 0],
         endPoint: [800, 0, 0],
         speed: 100,
-        capacity: 2
+        capacity: 2,
     });
     selectedConveyor.value = viewHandle.findFirstConveyor();
-    refreshSelectedConveyorInfo();
+    refreshAllInfo();
 }
 
 async function startConveyor() {
     await setSelectedConveyorStatus('running');
+    startConveyorTimer();
 }
 
 async function stopConveyor() {
+    stopConveyorTimer();
     await setSelectedConveyorStatus('stopped');
 }
 
@@ -282,9 +341,74 @@ async function setSelectedConveyorStatus(status: ConveyorStatus) {
 
     await viewHandle.setConveyorStatus({
         conveyorId: selectedConveyor.value.id,
-        status
+        status,
     });
+    refreshAllInfo();
+}
+
+async function loadWorkpiece() {
+    if (!viewHandle || !selectedConveyor.value) return;
+
+    await viewHandle.loadWorkpiece({
+        conveyorId: selectedConveyor.value.id,
+    });
+    refreshAllInfo();
+
+    if (selectedConveyor.value.status === 'running') {
+        startConveyorTimer();
+    }
+}
+
+async function unloadWorkpiece() {
+    if (!viewHandle) return;
+
+    await viewHandle.unloadWorkpiece();
+    refreshAllInfo();
+
+    if (selectedConveyor.value?.status === 'running') {
+        startConveyorTimer();
+    }
+}
+
+async function tickConveyorOnce() {
+    if (!viewHandle || !selectedConveyor.value || conveyorTicking) return;
+
+    conveyorTicking = true;
+
+    try {
+        await viewHandle.tickConveyorWorkpieces({
+            conveyorId: selectedConveyor.value.id,
+            deltaSeconds: TICK_SECONDS,
+        });
+        refreshAllInfo();
+    } finally {
+        conveyorTicking = false;
+    }
+}
+
+function startConveyorTimer() {
+    if (conveyorTimer !== null) return;
+
+    conveyorTimer = window.setInterval(() => {
+        void tickConveyorOnce();
+    }, TICK_SECONDS * 1000);
+}
+
+function stopConveyorTimer() {
+    if (conveyorTimer === null) return;
+
+    window.clearInterval(conveyorTimer);
+    conveyorTimer = null;
+}
+
+function refreshAllInfo() {
+    if (viewHandle) {
+        selectedConveyor.value = selectedConveyor.value ?? viewHandle.findFirstConveyor();
+    }
+
+    refreshSelectedWorkpieceInfo();
     refreshSelectedConveyorInfo();
+    refreshLogisticsInfo();
 }
 
 function refreshSelectedWorkpieceInfo() {
@@ -293,7 +417,7 @@ function refreshSelectedWorkpieceInfo() {
     selectedWorkpieceInfo.value = workpiece
         ? {
             state: workpiece.state,
-            remainingText: `${workpiece.remaining.toFixed(1)}s`
+            remainingText: `${workpiece.remaining.toFixed(1)}s`,
         }
         : null;
 }
@@ -309,9 +433,34 @@ function refreshSelectedConveyorInfo() {
             direction: formatPoint(conveyor.direction),
             speed: conveyor.speed,
             capacity: conveyor.capacity,
-            status: conveyor.status
+            status: conveyor.status,
         }
         : null;
+}
+
+function refreshLogisticsInfo() {
+    if (!viewHandle) {
+        logisticsInfo.value = null;
+        lastSnapshot.value = null;
+
+        return;
+    }
+
+    const snapshot = viewHandle.getLogisticsSnapshot(selectedConveyor.value?.id);
+    applySnapshot(snapshot);
+}
+
+function applySnapshot(snapshot: LogisticsSnapshot) {
+    lastSnapshot.value = snapshot;
+    logisticsInfo.value = {
+        currentTimeText: new Date(snapshot.currentTime).toLocaleTimeString(),
+        conveyorStatus: snapshot.conveyorStatus ?? '未创建',
+        waitingCount: snapshot.waitingCount,
+        conveyingCount: snapshot.conveyingCount,
+        exitWaitingCount: snapshot.exitWaitingCount,
+        blockedReason: BLOCKED_REASON_LABELS[snapshot.blockedReason],
+        worktableStatus: snapshot.worktableStatus === 'busy' ? '忙' : '空闲',
+    };
 }
 
 function formatPoint(point: [number, number, number]): string {
@@ -337,7 +486,9 @@ function formatPoint(point: [number, number, number]): string {
     position: absolute;
     top: 80px;
     left: 16px;
-    width: min(360px, calc(100vw - 32px));
+    width: min(430px, calc(100vw - 32px));
+    max-height: calc(100vh - 104px);
+    overflow: auto;
     padding: 16px;
     background: rgba(255, 255, 255, 0.94);
     border: 1px solid #d8dee9;
@@ -371,12 +522,13 @@ function formatPoint(point: [number, number, number]): string {
 }
 
 button {
-    height: 34px;
+    min-height: 34px;
     border: 1px solid #2f6fed;
     border-radius: 6px;
     background: #2f6fed;
     color: white;
-    font-size: 13px;
+    font-size: 12px;
+    line-height: 1.25;
     cursor: pointer;
 }
 

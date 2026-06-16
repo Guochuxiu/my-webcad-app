@@ -1,7 +1,7 @@
 import { FSCore } from '@fs/cadnginx';
 
 export type WorkpieceType = 'box' | 'cylinder';
-export type WorkpieceState = 'waiting' | 'moving' | 'arrived' | 'processing' | 'done';
+export type WorkpieceState = 'waiting' | 'loading' | 'moving' | 'arrived' | 'unloading' | 'processing' | 'done';
 
 export interface WorkpieceFeaturePoint {
     id: string;
