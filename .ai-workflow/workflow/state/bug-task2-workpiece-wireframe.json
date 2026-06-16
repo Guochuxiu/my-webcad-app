@@ -1,0 +1,39 @@
+{
+  "task_id": "bug-task2-workpiece-wireframe",
+  "title": "Task 2 workpiece wireframe stays at original position after move",
+  "lane": "bugfix",
+  "current_stage": "fix_plan",
+  "status": "in_progress",
+  "feedback_type": null,
+  "change_scope_level": null,
+  "blocked_from_stage": null,
+  "blocked_reason": null,
+  "recovery_condition": null,
+  "recovery_owner": null,
+  "resume_target_stage": null,
+  "user_confirmation": {
+    "proposal_approved": false,
+    "implementation_approved": false
+  },
+  "review_gates": {
+    "proposal_blockers": 0,
+    "proposal_high": 0,
+    "code_blockers": 0,
+    "verification_passed": false
+  },
+  "rounds": {
+    "proposal_review_round": 0,
+    "code_review_round": 1
+  },
+  "artifacts": {
+    "bugfix_report": {
+      "path": "examples/views/bug.md",
+      "version": 1,
+      "hash": "sha256:42066D028D2DE2244456CC90A3B938631EBCA582986E903022D8BAA79547FA8A",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1
+  }
+}

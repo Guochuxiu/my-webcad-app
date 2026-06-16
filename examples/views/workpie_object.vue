@@ -9,6 +9,7 @@
             <div class="button-row">
                 <button type="button" @click="createWorkpiece('box')">创建立方体</button>
                 <button type="button" @click="createWorkpiece('cylinder')">创建圆柱体</button>
+                <button type="button" :disabled="!canMoveSelected" @click="moveSelectedWorkpiece">移动到 B 点</button>
             </div>
             <div class="info-panel">
                 <div class="info-title">选中工件</div>
@@ -20,7 +21,11 @@
                         </div>
                         <div>
                             <dt>状态</dt>
-                            <dd>{{ selectedWorkpiece.state }}</dd>
+                            <dd>{{ selectedWorkpieceInfo?.state }}</dd>
+                        </div>
+                        <div>
+                            <dt>剩余</dt>
+                            <dd>{{ selectedWorkpieceInfo?.remainingText }}</dd>
                         </div>
                         <div>
                             <dt>库位</dt>
@@ -52,17 +57,27 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { SimpleWorkpiece, WebcadTemp, WorkpieceType } from '@/projects/template';
+import { WebcadTemp } from '@/projects/template';
+import type { SimpleWorkpiece, WorkpieceMoveProgressEvent, WorkpieceType } from '@/projects/template';
 import type { TempViewHandle } from '@/projects/template/view/temp_view_handle';
 
-const VIEW_KEY = 'workpiece-task-1';
+const VIEW_KEY = 'workpiece-task-2';
 const containerRef = ref<HTMLDivElement | null>(null);
 const selectedWorkpiece = ref<SimpleWorkpiece | null>(null);
+const selectedWorkpieceInfo = ref<{
+    state: string;
+    remainingText: string;
+} | null>(null);
 
 let app: WebcadTemp | null = null;
 let viewHandle: TempViewHandle | null = null;
 let stopSelectionListen: (() => void) | null = null;
+let stopChangeListen: (() => void) | null = null;
 let createdCount = 0;
+
+const canMoveSelected = computed(() => {
+    return Boolean(selectedWorkpiece.value) && selectedWorkpieceInfo.value?.state === 'waiting';
+});
 
 const featureSummary = computed(() => {
     const workpiece = selectedWorkpiece.value;
@@ -106,13 +121,29 @@ onMounted(async () => {
     // 选择事件返回的是实体 id；可能命中工件子实体，所以通过 handle 反查父级 SimpleWorkpiece。
     stopSelectionListen = viewHandle.onSelectionChange.listen(event => {
         selectedWorkpiece.value = viewHandle?.findSimpleWorkpieceByEntityIds(event.selectedIds) ?? null;
+        refreshSelectedWorkpieceInfo();
+    });
+
+    stopChangeListen = viewHandle.onChange.listen(event => {
+        if (event.type !== 'command') return;
+
+        const data = event.payload.data as WorkpieceMoveProgressEvent | undefined;
+
+        if (data?.type !== 'workpieceMoveProgress') return;
+        if (selectedWorkpiece.value?.id !== data.workpieceId) return;
+
+        refreshSelectedWorkpieceInfo();
     });
 });
 
 onUnmounted(async () => {
+    viewHandle?.cancelCommand();
     stopSelectionListen?.();
+    stopChangeListen?.();
     stopSelectionListen = null;
+    stopChangeListen = null;
     selectedWorkpiece.value = null;
+    selectedWorkpieceInfo.value = null;
     await viewHandle?.dispose();
     viewHandle = null;
     app = null;
@@ -130,6 +161,32 @@ async function createWorkpiece(type: WorkpieceType) {
         type,
         center: [centerX, 0, 0]
     });
+}
+
+async function moveSelectedWorkpiece() {
+    if (!viewHandle || !selectedWorkpiece.value || selectedWorkpiece.value.state !== 'waiting') return;
+
+    const workpiece = selectedWorkpiece.value;
+
+    await viewHandle.moveWorkpiece({
+        workpieceId: workpiece.id,
+        from: workpiece.getPositionTuple(),
+        to: [500, 0, 0],
+        duration: 3.0
+    });
+
+    refreshSelectedWorkpieceInfo();
+}
+
+function refreshSelectedWorkpieceInfo() {
+    const workpiece = selectedWorkpiece.value;
+
+    selectedWorkpieceInfo.value = workpiece
+        ? {
+            state: workpiece.state,
+            remainingText: `${workpiece.remaining.toFixed(1)}s`
+        }
+        : null;
 }
 </script>
 
@@ -179,7 +236,7 @@ async function createWorkpiece(type: WorkpieceType) {
 
 .button-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 14px;
 }
@@ -196,6 +253,16 @@ button {
 
 button:hover {
     background: #255ec9;
+}
+
+button:disabled {
+    border-color: #a9b4c4;
+    background: #b9c2cf;
+    cursor: not-allowed;
+}
+
+button:disabled:hover {
+    background: #b9c2cf;
 }
 
 .info-panel {

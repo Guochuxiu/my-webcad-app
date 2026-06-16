@@ -30,9 +30,13 @@ interface WorkpieceGeometry {
  */
 export class SimpleWorkpieceFactory {
     public static create(options: CreateSimpleWorkpieceOptions): SimpleWorkpiece {
+        const localOptions = {
+            ...options,
+            center: [0, 0, 0] as [number, number, number]
+        };
         const geometry = options.type === 'cylinder'
-            ? this._buildCylinderGeometry(options)
-            : this._buildBoxGeometry(options);
+            ? this._buildCylinderGeometry(localOptions)
+            : this._buildBoxGeometry(localOptions);
 
         const workpiece = new SimpleWorkpiece({
             type: options.type,
@@ -53,8 +57,7 @@ export class SimpleWorkpieceFactory {
 
         const featureLines = new FSCore.Model.BatchLine({
             vertex: this._buildLineVertex(geometry.points, geometry.lines),
-            color: 0x1f2937,
-            lineWidth: 2
+            color: 0x1f2937
         });
 
         const featurePoints = new FSCore.Model.BatchPoint({
@@ -68,6 +71,7 @@ export class SimpleWorkpieceFactory {
 
         // 子实体进入父 Group 后，WebCAD 会沿实体树递归创建对应 Display。
         workpiece.addChild([body, featureLines, featurePoints]);
+        workpiece.moveToPosition(options.center ?? [0, 0, 0]);
         workpiece.dirtyGeometry();
 
         return workpiece;

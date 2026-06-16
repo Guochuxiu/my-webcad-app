@@ -1,7 +1,7 @@
 import { FSCore } from '@fs/cadnginx';
 
 export type WorkpieceType = 'box' | 'cylinder';
-export type WorkpieceState = 'waiting' | 'processing' | 'done';
+export type WorkpieceState = 'waiting' | 'moving' | 'arrived' | 'processing' | 'done';
 
 export interface WorkpieceFeaturePoint {
     id: string;
@@ -50,6 +50,7 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
     private _state: WorkpieceState;
     private _location: string;
     private _features: WorkpieceFeatures;
+    private _remaining = 0;
 
     constructor(meta: SimpleWorkpieceMeta) {
         super();
@@ -71,11 +72,38 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
         return this._features;
     }
 
+    public get remaining(): number {
+        return this._remaining;
+    }
+
+    public getPositionTuple(): [number, number, number] {
+        return [this.position.x, this.position.y, this.position.z];
+    }
+
     public setState(state: WorkpieceState): void {
         if (this._state === state) return;
         this._state = state;
         // 状态影响材质或颜色表现，触发材质 dirty 让 Display 有机会刷新外观。
         this.dirtyMaterial();
+    }
+
+    public setRemaining(remaining: number): void {
+        const nextRemaining = Math.max(0, remaining);
+
+        if (Math.abs(this._remaining - nextRemaining) < 0.001) return;
+
+        this._remaining = nextRemaining;
+        this.dirtyMaterial();
+    }
+
+    public moveToPosition(position: [number, number, number]): void {
+        this.setPosition(position[0], position[1], position[2]);
+        this.dirtyPosition();
+        this.dirty();
+        this.forEachChild(child => {
+            child.dirtyPosition();
+            child.dirty();
+        });
     }
 
     public setLocation(location: string): void {

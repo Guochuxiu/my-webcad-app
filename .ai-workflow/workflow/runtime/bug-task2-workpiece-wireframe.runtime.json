@@ -1,0 +1,55 @@
+{
+  "run_id": "run-bug-task2-workpiece-wireframe-001",
+  "task_id": "bug-task2-workpiece-wireframe",
+  "lane": "bugfix",
+  "current_stage": "fix_plan",
+  "checkpoint_id": "cp-bug-task2-workpiece-wireframe-001",
+  "event_cursor": 1,
+  "checkpoint_payload": {
+    "current_stage": "fix_plan",
+    "last_successful_transition": "root_cause_analysis -> fix_plan",
+    "timestamp": "2026-06-16T09:46:15.2359053+08:00"
+  },
+  "pending_events": [],
+  "retry_count": 0,
+  "timeout_policy": {
+    "diagnostic_wait_hours": 12,
+    "review_wait_hours": 8
+  },
+  "side_effects": [
+    {
+      "type": "write_artifact",
+      "target": "examples/views/bug.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "bug-task2-workpiece-wireframe-report-v1",
+      "status": "completed"
+    }
+  ],
+  "idempotency_keys": [
+    "bug-task2-workpiece-wireframe-report-v1"
+  ],
+  "artifact_versions": {
+    "bugfix_report": {
+      "path": "examples/views/bug.md",
+      "version": 1,
+      "hash": "sha256:42066D028D2DE2244456CC90A3B938631EBCA582986E903022D8BAA79547FA8A",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1
+  },
+  "review_trace": [
+    {
+      "review_type": "code-review",
+      "round": 1,
+      "reviewer": "codex-self-review-pass",
+      "disposition": "approve_with_notes",
+      "authoritative_reviewer_role": "code-reviewer",
+      "review_mode": "blocking",
+      "notes": "Document revised to mark the BatchLine refresh cause as the most likely root cause pending browser regression verification."
+    }
+  ],
+  "approval_trace": [],
+  "active_agent_run_ids": []
+}

@@ -2,6 +2,7 @@ import { BaseViewHandle } from '@/common';
 import { TempCanvas } from './temp_canvas';
 import type { ImportModelParams } from '../command/cmd_import_model';
 import type { CreateSimpleWorkpieceParams } from '../command/cmd_create_simple_workpiece';
+import type { MoveWorkpieceParams } from '../command/cmd_move_workpiece';
 import { CMD_TYPES } from '../command/cmd_types';
 import { SimpleWorkpiece } from '../model/workpiece';
 
@@ -15,6 +16,10 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
 
     public createSimpleWorkpiece(params: CreateSimpleWorkpieceParams): Promise<void> {
         return this.executeCommand(CMD_TYPES.CREATE_SIMPLE_WORKPIECE, params);
+    }
+
+    public moveWorkpiece(params: MoveWorkpieceParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.MOVE_WORKPIECE, params);
     }
 
     /**
@@ -36,4 +41,3 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
         return null;
     }
 }
-

@@ -4,6 +4,7 @@ import { CmdLoadScene } from './cmd_load_scene';
 import { CmdImportModel } from './cmd_import_model';
 import { CmdImportPointCloud } from './cmd_import_pointcloud';
 import { CreateSimpleWorkpieceCommand } from './cmd_create_simple_workpiece';
+import { MoveWorkpieceCommand } from './cmd_move_workpiece';
 import { CMD_TYPES } from './cmd_types';
 
 //命令注册表，这个 map 的作用是把“命令名”映射到“命令类”
@@ -12,7 +13,8 @@ export const TEMPLATE_CMD_CLASS_MAP = {
     [CMD_TYPES.IMPORT_MODEL]: CmdImportModel,
     [CMD_TYPES.IMPORT_POINT_CLOUD]: CmdImportPointCloud,
     // 新命令必须进入统一映射，TempCanvas._registerCommands 才能注册到 CommandManager。
-    [CMD_TYPES.CREATE_SIMPLE_WORKPIECE]: CreateSimpleWorkpieceCommand
+    [CMD_TYPES.CREATE_SIMPLE_WORKPIECE]: CreateSimpleWorkpieceCommand,
+    [CMD_TYPES.MOVE_WORKPIECE]: MoveWorkpieceCommand
 } satisfies Record<CMD_TYPES, CommandClass<any>>;
 
 // 自动映射
