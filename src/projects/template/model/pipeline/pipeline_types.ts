@@ -1,4 +1,5 @@
 import type { ConveyorEntity, ConveyorPoint } from '../conveyor';
+import type { LoadingDeviceEntity } from '../loading_device';
 import type { SimpleWorkpiece } from '../workpiece';
 
 export type PipelinePoint = ConveyorPoint;
@@ -50,6 +51,10 @@ export interface PipelineSnapshot {
 
 export interface PipelineTickContext {
     conveyor: ConveyorEntity;
+    loader?: LoadingDeviceEntity | null;
+    unloader?: LoadingDeviceEntity | null;
+    getCompletedIndex?(): number;
+    getWarehouseWaitingIds?(): number[];
     getWorkpiece(workpieceId: number): SimpleWorkpiece | null;
 }
 

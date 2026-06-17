@@ -3,6 +3,7 @@ import { ConveyorEntity, DEFAULT_CONVEYOR_META } from '../model/conveyor';
 import { PipelineEntity, PipelineMeta, getWarehousePosition } from '../model/pipeline';
 import { SimpleWorkpieceFactory, WorkpieceType } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
+import { getOrCreateWarehouse, syncWarehouseStatus } from './pipeline_command_utils';
 
 export interface CreatePipelineDemoParams {
     id?: string;
@@ -22,6 +23,7 @@ export class CreatePipelineDemoCommand extends CmdBase<CreatePipelineDemoParams,
     public async commit(): Promise<void> {
         const pipelineBusinessId = this._params?.id ?? DEFAULT_PIPELINE_ID;
 
+        getOrCreateWarehouse(this._view);
         this._removeExistingPipeline(pipelineBusinessId);
 
         const conveyor = this._getOrCreateConveyor();
@@ -39,6 +41,7 @@ export class CreatePipelineDemoCommand extends CmdBase<CreatePipelineDemoParams,
 
         this._view.addModel(pipeline);
         pipeline.dirtyGeometry();
+        syncWarehouseStatus(this._view);
         conveyor.setStatus('idle');
         this._view.dirty();
         this._view.runInNewFrame(() => {

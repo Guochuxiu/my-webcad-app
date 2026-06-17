@@ -6,6 +6,7 @@ import { TempViewHandle } from './temp_view_handle';
 
 //实现创建视图
 export class WebcadTemp extends WebCadApiBase<TemplateCmdParamTypes> {
+    //命令注册表
     public static CMD_TYPES = CMD_TYPES;
 
     private static _instance: WebcadTemp;

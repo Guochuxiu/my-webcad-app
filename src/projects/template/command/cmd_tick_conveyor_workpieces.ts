@@ -8,6 +8,7 @@ import {
     LOGISTICS_LOCATIONS,
     LogisticsSnapshotEvent,
 } from '../model/logistics';
+import { getWorkpieceOnBeltPosition } from '../model/pipeline';
 import { TempCanvas } from '../view/temp_canvas';
 
 export interface TickConveyorWorkpiecesParams {
@@ -76,7 +77,7 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
             nextProgress = Math.max(currentProgress, Math.max(0, nextProgress));
 
             if (nextProgress >= 1 && !hasBlockedExit) {
-                workpiece.moveToPosition(conveyor.endPoint);
+                workpiece.moveToPosition(getWorkpieceOnBeltPosition(conveyor, 1, workpiece.workpieceType));
                 workpiece.setRemaining(0);
                 workpiece.setState('arrived');
                 workpiece.setLocation(LOGISTICS_LOCATIONS.conveyorExit);
@@ -87,7 +88,7 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
             }
 
             const clampedProgress = hasBlockedExit ? Math.min(nextProgress, 1 - MIN_SLOT_PROGRESS) : nextProgress;
-            workpiece.moveToPosition(this._getPointOnConveyor(clampedProgress));
+            workpiece.moveToPosition(getWorkpieceOnBeltPosition(conveyor, clampedProgress, workpiece.workpieceType));
             workpiece.setRemaining(((1 - clampedProgress) * conveyor.length) / Math.max(1, conveyor.speed));
             workpiece.setState('moving');
             workpiece.setLocation(conveyor.conveyorId);
@@ -106,23 +107,6 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
         super.commit(this._createResult());
     }
 
-    private _getPointOnConveyor(progress: number): [number, number, number] {
-        const conveyor = findConveyorByEntityId(this._view.app.doc.entityList, this._params?.conveyorId);
-
-        if (!conveyor) {
-            return [0, 0, 0];
-        }
-
-        const [sx, sy, sz] = conveyor.startPoint;
-        const [ex, ey, ez] = conveyor.endPoint;
-
-        return [
-            sx + (ex - sx) * progress,
-            sy + (ey - sy) * progress,
-            sz + (ez - sz) * progress,
-        ];
-    }
-
     private _createResult() {
         const conveyor = findConveyorByEntityId(this._view.app.doc.entityList, this._params?.conveyorId);
 
@@ -139,4 +123,3 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
         this._view.app.signalEventBus.dispatch(event);
     }
 }
-

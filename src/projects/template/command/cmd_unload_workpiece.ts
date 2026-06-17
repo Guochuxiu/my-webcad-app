@@ -2,13 +2,14 @@ import { CmdBase } from '@/common';
 import {
     createLogisticsSnapshot,
     findFirstConveyor,
+    findLoadingDeviceByKind,
     getExitWaitingWorkpieces,
     getSimpleWorkpieces,
     getWorktableBusyWorkpiece,
     LOGISTICS_LOCATIONS,
     LogisticsSnapshotEvent,
 } from '../model/logistics';
-import { PIPELINE_LAYOUT } from '../model/pipeline';
+import { getManualUnloadPosition } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
 
@@ -38,12 +39,21 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
             return;
         }
 
+        const unloader = findLoadingDeviceByKind(this._view.app.doc.entityList, 'unloader');
+        if (!unloader || unloader.status === 'busy') {
+            this.cancel();
+
+            return;
+        }
+
+        unloader?.setStatus('busy');
         target.setState('unloading');
         target.setLocation(LOGISTICS_LOCATIONS.unloader);
         target.moveToPosition(this._getWorktablePosition());
         target.setRemaining(0);
         target.setState('done');
         target.setLocation(LOGISTICS_LOCATIONS.worktable);
+        unloader?.setStatus('idle');
 
         const conveyor = findFirstConveyor(this._view.app.doc.entityList);
         if (conveyor?.status === 'blocked' && getExitWaitingWorkpieces(this._view.app.doc.entityList).length === 0) {
@@ -77,9 +87,8 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         const doneCount = getSimpleWorkpieces(this._view.app.doc.entityList).filter(
             (workpiece) => workpiece.location === LOGISTICS_LOCATIONS.worktable && workpiece.state === 'done'
         ).length;
-        const [x, y, z] = PIPELINE_LAYOUT.worktablePoint;
 
-        return [x, y + doneCount * 90, z];
+        return getManualUnloadPosition(doneCount);
     }
 
     private _dispatchLogisticsSnapshot(): void {

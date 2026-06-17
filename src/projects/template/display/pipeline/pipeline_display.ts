@@ -19,7 +19,6 @@ export class PipelineDisplay extends FSApp.View.Three.ThreeDisplay<PipelineEntit
     protected _createViewObj(): THREE.Object3D {
         const root = new THREE.Group();
 
-        root.add(this._createBox([-160, -340, 0], [190, 320, DEVICE_HEIGHT], 0x94a3b8, 0.22));
         this._loaderMesh = this._createBox(PIPELINE_LAYOUT.loaderPoint, [90, 90, DEVICE_HEIGHT], 0xf59e0b, 0.52);
         this._unloaderMesh = this._createBox(PIPELINE_LAYOUT.unloaderPoint, [90, 90, DEVICE_HEIGHT], 0x38bdf8, 0.52);
         this._worktableMesh = this._createBox(PIPELINE_LAYOUT.worktablePoint, [150, 130, DEVICE_HEIGHT], 0x22c55e, 0.5);

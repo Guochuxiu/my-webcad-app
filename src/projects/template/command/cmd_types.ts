@@ -12,6 +12,7 @@ export enum CMD_TYPES {
     MOVE_WORKPIECE = 'move_workpiece',
     /** 创建传送带 */
     CREATE_CONVEYOR = 'create_conveyor',
+    CREATE_LOADING_DEVICES = 'create_loading_devices',
     /** 设置传送带状态 */
     SET_CONVEYOR_STATUS = 'set_conveyor_status',
     /** 手动上料 */
@@ -26,5 +27,7 @@ export enum CMD_TYPES {
     SET_PIPELINE_STATUS = 'set_pipeline_status',
     /** 推进最小流水线 tick */
     TICK_PIPELINE = 'tick_pipeline',
+    START_AUTOMATION_PIPELINE = 'start_automation_pipeline',
+    STOP_AUTOMATION_PIPELINE = 'stop_automation_pipeline',
+    TICK_AUTOMATION_PIPELINE = 'tick_automation_pipeline',
 }
-

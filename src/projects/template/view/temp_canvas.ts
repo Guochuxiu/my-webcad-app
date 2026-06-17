@@ -5,9 +5,13 @@ import { PickPriority } from '@/common/core/pick_strategy/pick_strategy';
 import { registerCmd } from '../command/cmd_register';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { ConveyorEntity } from '../model/conveyor';
+import { LoadingDeviceEntity } from '../model/loading_device';
 import { PipelineEntity } from '../model/pipeline';
+import { WarehouseEntity } from '../model/warehouse';
 import { ConveyorDisplay } from '../display/conveyor';
+import { LoadingDeviceDisplay } from '../display/loading_device';
 import { PipelineDisplay } from '../display/pipeline';
+import { WarehouseDisplay } from '../display/warehouse';
 
 //业务canvas，
 // 包含dispaly注册实现 Entity -> Display 映射机制
@@ -22,7 +26,6 @@ export class TempCanvas extends Base3DCanvas {
             domElement: params.domElement,
             app: params.app
         });
-        const theme = this._config.get('common.theme') || 'light';
     }
 
     protected _registerCommands(): void {
@@ -38,7 +41,9 @@ export class TempCanvas extends Base3DCanvas {
         this.registerDisplayType(FSCore.Model.BatchLine, e => this.createDisplay(e, Display.BatchLineDisplay));
         this.registerDisplayType(FSCore.Model.BatchPoint, e => this.createDisplay(e, Display.BatchPointDisplay));
         this.registerDisplayType(ConveyorEntity, e => this.createDisplay(e, ConveyorDisplay));
+        this.registerDisplayType(LoadingDeviceEntity, e => this.createDisplay(e, LoadingDeviceDisplay));
         this.registerDisplayType(PipelineEntity, e => this.createDisplay(e, PipelineDisplay));
+        this.registerDisplayType(WarehouseEntity, e => this.createDisplay(e, WarehouseDisplay));
     }
 
     protected _registerPickHelper(): void {

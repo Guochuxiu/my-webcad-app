@@ -1,4 +1,5 @@
 import { FSCore } from '@fs/cadnginx';
+import { getWorkpieceSize } from '../pipeline';
 import { SimpleWorkpiece, WorkpieceFeatureFace, WorkpieceFeatureLine, WorkpieceFeaturePoint, WorkpieceType } from './simple_workpiece';
 
 export interface CreateSimpleWorkpieceOptions {
@@ -83,9 +84,10 @@ export class SimpleWorkpieceFactory {
      */
     private static _buildBoxGeometry(options: CreateSimpleWorkpieceOptions): WorkpieceGeometry {
         const [cx, cy, cz] = options.center ?? [0, 0, 0];
-        const width = options.size?.width ?? 120;
-        const height = options.size?.height ?? 90;
-        const depth = options.size?.depth ?? 70;
+        const defaultSize = getWorkpieceSize('box');
+        const width = options.size?.width ?? defaultSize.width;
+        const height = options.size?.height ?? defaultSize.height;
+        const depth = options.size?.depth ?? defaultSize.depth;
         const halfW = width / 2;
         const halfH = height / 2;
         const halfD = depth / 2;
@@ -153,8 +155,9 @@ export class SimpleWorkpieceFactory {
      */
     private static _buildCylinderGeometry(options: CreateSimpleWorkpieceOptions): WorkpieceGeometry {
         const [cx, cy, cz] = options.center ?? [0, 0, 0];
-        const radius = options.size?.radius ?? 45;
-        const height = options.size?.height ?? 100;
+        const defaultSize = getWorkpieceSize('cylinder');
+        const radius = options.size?.radius ?? defaultSize.radius;
+        const height = options.size?.height ?? defaultSize.height;
         const segments = Math.max(12, options.size?.segments ?? 24);
         const halfH = height / 2;
 

@@ -11,7 +11,7 @@ import {
 } from './pipeline_types';
 import {
     getCompletedPosition,
-    getConveyorPosition,
+    getWorkpieceOnBeltPosition,
     getWarehousePosition,
     interpolatePoint,
     PIPELINE_LAYOUT
@@ -132,11 +132,67 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
         this.dirty();
     }
 
+    public resetWorkpieces(workpieceIds: number[]): void {
+        this._workpieceIds = [...workpieceIds];
+        this._warehouseQueue = [...workpieceIds];
+        this._conveyorSlots = [];
+        this._exitQueue = [];
+        this._completedIds = [];
+        this._loaderTask = null;
+        this._unloaderTask = null;
+        this._worktableTask = null;
+        this._status = 'idle';
+        this._blockedReason = 'none';
+        this._currentTime = 0;
+        this._syncGeometryMeta();
+        this.dirtyGeometry();
+        this.dirtyMaterial();
+        this.dirty();
+    }
+
+    public syncWarehouseQueue(workpieceIds: number[]): void {
+        const knownIds = new Set<number>([
+            ...this._workpieceIds,
+            ...this._warehouseQueue,
+            ...this._conveyorSlots.map(slot => slot.workpieceId),
+            ...this._exitQueue,
+            ...this._completedIds
+        ]);
+
+        if (this._loaderTask) knownIds.add(this._loaderTask.workpieceId);
+        if (this._unloaderTask) knownIds.add(this._unloaderTask.workpieceId);
+        if (this._worktableTask) knownIds.add(this._worktableTask.workpieceId);
+
+        const newWorkpieceIds = workpieceIds.filter(workpieceId => !knownIds.has(workpieceId));
+
+        if (newWorkpieceIds.length === 0) return;
+
+        // 自动化运行中可能继续创建仓库工件，这里只追加新 waiting 工件，不重置正在执行的任务。
+        this._workpieceIds.push(...newWorkpieceIds);
+        this._warehouseQueue.push(...newWorkpieceIds);
+
+        if (this._status === 'completed') {
+            this._status = 'running';
+            this._blockedReason = 'none';
+        }
+
+        this._syncGeometryMeta();
+        this.dirtyGeometry();
+        this.dirtyMaterial();
+        this.dirty();
+    }
+
     public tick(deltaSeconds: number, context: PipelineTickContext): PipelineSnapshot {
         const delta = Math.max(0, deltaSeconds);
 
         if (delta === 0 || (this._status !== 'running' && this._status !== 'blocked')) {
             return this.snapshot;
+        }
+
+        const warehouseWaitingIds = context.getWarehouseWaitingIds?.();
+
+        if (warehouseWaitingIds) {
+            this.syncWarehouseQueue(warehouseWaitingIds);
         }
 
         this._currentTime += delta;
@@ -174,6 +230,7 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
     private _advanceLoader(delta: number, context: PipelineTickContext): void {
         if (!this._loaderTask) return;
 
+        context.loader?.setStatus('busy');
         this._loaderTask.elapsed = Math.min(this._loaderTask.duration, this._loaderTask.elapsed + delta);
         const progress = this._loaderTask.elapsed / this._loaderTask.duration;
         const workpiece = context.getWorkpiece(this._loaderTask.workpieceId);
@@ -194,13 +251,19 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
         });
         workpiece?.setState('moving');
         workpiece?.setLocation(context.conveyor.conveyorId);
-        workpiece?.moveToPosition(context.conveyor.startPoint);
+        workpiece?.moveToPosition(getWorkpieceOnBeltPosition(
+            context.conveyor,
+            0,
+            workpiece?.workpieceType ?? 'box'
+        ));
+        context.loader?.setStatus('idle');
         this._loaderTask = null;
     }
 
     private _advanceUnloader(delta: number, context: PipelineTickContext): void {
         if (!this._unloaderTask) return;
 
+        context.unloader?.setStatus('busy');
         this._unloaderTask.elapsed = Math.min(this._unloaderTask.duration, this._unloaderTask.elapsed + delta);
         const progress = this._unloaderTask.elapsed / this._unloaderTask.duration;
         const workpiece = context.getWorkpiece(this._unloaderTask.workpieceId);
@@ -218,6 +281,7 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
             remaining: this._worktableDuration,
             duration: this._worktableDuration
         };
+        context.unloader?.setStatus('idle');
         this._unloaderTask = null;
     }
 
@@ -231,7 +295,7 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
         if (this._worktableTask.remaining > 0) return;
 
-        const completedIndex = this._completedIds.length;
+        const completedIndex = context.getCompletedIndex?.() ?? this._completedIds.length;
 
         workpiece?.setState('done');
         workpiece?.setRemaining(0);
@@ -259,7 +323,11 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
             const workpiece = context.getWorkpiece(slot.workpieceId);
 
-            workpiece?.moveToPosition(getConveyorPosition(context.conveyor, slot.progress));
+            workpiece?.moveToPosition(getWorkpieceOnBeltPosition(
+                context.conveyor,
+                slot.progress,
+                workpiece?.workpieceType ?? 'box'
+            ));
         }
 
         this._collectArrivedSlots(context);
@@ -287,7 +355,11 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
             workpiece?.setState('arrived');
             workpiece?.setLocation('conveyor_exit');
-            workpiece?.moveToPosition(context.conveyor.endPoint);
+            workpiece?.moveToPosition(getWorkpieceOnBeltPosition(
+                context.conveyor,
+                1,
+                workpiece?.workpieceType ?? 'box'
+            ));
             this._exitQueue.push(slot.workpieceId);
         });
 
@@ -296,6 +368,11 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
     private _tryStartLoader(context: PipelineTickContext): void {
         if (this._loaderTask || this._warehouseQueue.length === 0) return;
+        if (context.loader?.status === 'busy') {
+            this._blockedReason = 'loader_busy';
+
+            return;
+        }
 
         const blockReason = this._getEntryBlockReason(context);
 
@@ -311,17 +388,23 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
         workpiece?.setState('loading');
         workpiece?.setLocation('loader_01');
+        context.loader?.setStatus('busy');
         this._loaderTask = {
             workpieceId,
             elapsed: 0,
             duration: this._loaderDuration,
             from,
-            to: context.conveyor.startPoint
+            to: getWorkpieceOnBeltPosition(context.conveyor, 0, workpiece?.workpieceType ?? 'box')
         };
     }
 
     private _tryStartUnloader(context: PipelineTickContext): void {
         if (this._unloaderTask || this._exitQueue.length === 0) return;
+        if (context.unloader?.status === 'busy') {
+            this._blockedReason = 'unloader_busy';
+
+            return;
+        }
 
         if (this._worktableTask) {
             this._blockedReason = 'worktable_busy';
@@ -337,6 +420,7 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
 
         workpiece?.setState('unloading');
         workpiece?.setLocation('unloader_01');
+        context.unloader?.setStatus('busy');
         this._unloaderTask = {
             workpieceId,
             elapsed: 0,
@@ -372,7 +456,8 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
     }
 
     private _finalizeStatus(context: PipelineTickContext): void {
-        const isCompleted = this._completedIds.length === this._workpieceIds.length
+        const externalWaitingCount = context.getWarehouseWaitingIds?.().length ?? 0;
+        const isCompleted = externalWaitingCount === 0
             && this._warehouseQueue.length === 0
             && this._conveyorSlots.length === 0
             && this._exitQueue.length === 0
@@ -384,6 +469,8 @@ export class PipelineEntity extends FSCore.Model.CADEntity<PipelineMeta> {
             this._status = 'completed';
             this._blockedReason = 'none';
             context.conveyor.setStatus('stopped');
+            context.loader?.setStatus('idle');
+            context.unloader?.setStatus('idle');
 
             return;
         }

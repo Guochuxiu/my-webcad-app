@@ -1,4 +1,6 @@
 import { ConveyorEntity, ConveyorStatus } from '../conveyor';
+import { LoadingDeviceEntity, LoadingDeviceKind, LoadingDeviceStatus } from '../loading_device';
+import { PipelineEntity, PipelineStatus } from '../pipeline';
 import { SimpleWorkpiece } from '../workpiece';
 
 export const LOGISTICS_LOCATIONS = {
@@ -14,18 +16,24 @@ export type LogisticsBlockedReason =
     | 'conveyor_full'
     | 'conveyor_entry_occupied'
     | 'conveyor_exit_occupied'
-    | 'worktable_busy';
+    | 'worktable_busy'
+    | 'loader_busy'
+    | 'unloader_busy';
 
 export interface LogisticsSnapshot {
     currentTime: number;
     conveyorId?: number;
     conveyorBusinessId?: string;
     conveyorStatus?: ConveyorStatus;
+    automationStatus: PipelineStatus | 'idle';
+    loaderStatus: LoadingDeviceStatus | 'missing';
+    unloaderStatus: LoadingDeviceStatus | 'missing';
     waitingCount: number;
     conveyingCount: number;
     exitWaitingCount: number;
     blockedReason: LogisticsBlockedReason;
     worktableStatus: 'idle' | 'busy';
+    completedCount: number;
     canLoad: boolean;
     canUnload: boolean;
     warehouseWaitingIds: number[];
@@ -45,6 +53,25 @@ export function getSimpleWorkpieces(entityList: unknown[]): SimpleWorkpiece[] {
 
 export function getConveyors(entityList: unknown[]): ConveyorEntity[] {
     return entityList.filter((entity): entity is ConveyorEntity => entity instanceof ConveyorEntity);
+}
+
+export function getLoadingDevices(entityList: unknown[]): LoadingDeviceEntity[] {
+    return entityList.filter((entity): entity is LoadingDeviceEntity => entity instanceof LoadingDeviceEntity);
+}
+
+export function findLoadingDeviceByKind(
+    entityList: unknown[],
+    kind: LoadingDeviceKind
+): LoadingDeviceEntity | null {
+    return getLoadingDevices(entityList).find((device) => device.kind === kind) ?? null;
+}
+
+export function getPipelines(entityList: unknown[]): PipelineEntity[] {
+    return entityList.filter((entity): entity is PipelineEntity => entity instanceof PipelineEntity);
+}
+
+export function findFirstPipeline(entityList: unknown[]): PipelineEntity | null {
+    return getPipelines(entityList)[0] ?? null;
 }
 
 export function findFirstConveyor(entityList: unknown[]): ConveyorEntity | null {
@@ -84,10 +111,15 @@ export function getExitWaitingWorkpieces(entityList: unknown[]): SimpleWorkpiece
 export function getWorktableBusyWorkpiece(entityList: unknown[]): SimpleWorkpiece | null {
     return (
         getSimpleWorkpieces(entityList).find(
-            (workpiece) =>
-                workpiece.state === 'loading' ||
-                workpiece.state === 'unloading' ||
-                workpiece.state === 'processing'
+            (workpiece) => workpiece.location === LOGISTICS_LOCATIONS.worktable && workpiece.state !== 'done'
+        ) ?? null
+    );
+}
+
+export function getActiveDeviceWorkpiece(entityList: unknown[]): SimpleWorkpiece | null {
+    return (
+        getSimpleWorkpieces(entityList).find(
+            (workpiece) => workpiece.state === 'loading' || workpiece.state === 'unloading'
         ) ?? null
     );
 }
@@ -126,12 +158,22 @@ export function createLogisticsSnapshot(entityList: unknown[], conveyor?: Convey
     const worktableBusy = Boolean(getWorktableBusyWorkpiece(entityList));
     const conveyorAtCapacity = conveyor ? isConveyorAtCapacity(entityList, conveyor) : false;
     const conveyorEntryOccupied = conveyor ? isConveyorEntryOccupied(entityList, conveyor) : false;
+    const loader = findLoadingDeviceByKind(entityList, 'loader');
+    const unloader = findLoadingDeviceByKind(entityList, 'unloader');
+    const pipeline = findFirstPipeline(entityList);
+    const activeDeviceWorkpiece = getActiveDeviceWorkpiece(entityList);
+    const loaderBusy = loader?.status === 'busy' || activeDeviceWorkpiece?.state === 'loading';
+    const unloaderBusy = unloader?.status === 'busy' || activeDeviceWorkpiece?.state === 'unloading';
 
     let blockedReason: LogisticsBlockedReason = 'none';
     if (conveyor && exitWaiting.length > 0) {
-        blockedReason = 'conveyor_exit_occupied';
+        blockedReason = worktableBusy ? 'worktable_busy' : 'conveyor_exit_occupied';
     } else if (worktableBusy) {
         blockedReason = 'worktable_busy';
+    } else if (loaderBusy) {
+        blockedReason = 'loader_busy';
+    } else if (unloaderBusy) {
+        blockedReason = 'unloader_busy';
     } else if (conveyorAtCapacity) {
         blockedReason = 'conveyor_full';
     } else if (conveyorEntryOccupied) {
@@ -143,19 +185,25 @@ export function createLogisticsSnapshot(entityList: unknown[], conveyor?: Convey
         conveyorId: conveyor?.id,
         conveyorBusinessId: conveyor?.conveyorId,
         conveyorStatus: conveyor?.status,
+        automationStatus: pipeline?.status ?? 'idle',
+        loaderStatus: loader?.status ?? 'missing',
+        unloaderStatus: unloader?.status ?? 'missing',
         waitingCount: waiting.length,
         conveyingCount: conveying.length,
         exitWaitingCount: exitWaiting.length,
         blockedReason,
         worktableStatus: worktableBusy ? 'busy' : 'idle',
+        completedCount: getSimpleWorkpieces(entityList).filter((workpiece) => workpiece.state === 'done').length,
         canLoad: Boolean(
             conveyor &&
+            loader &&
             waiting.length > 0 &&
+            !loaderBusy &&
             !conveyorAtCapacity &&
             !conveyorEntryOccupied &&
             conveyor.status !== 'blocked'
         ),
-        canUnload: exitWaiting.length > 0 && !worktableBusy,
+        canUnload: Boolean(unloader && exitWaiting.length > 0 && !worktableBusy && !unloaderBusy),
         warehouseWaitingIds: waiting.map((workpiece) => workpiece.id),
         conveyingIds: conveying.map((workpiece) => workpiece.id),
         exitWaitingIds: exitWaiting.map((workpiece) => workpiece.id),

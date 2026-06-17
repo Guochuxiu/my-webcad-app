@@ -1,5 +1,6 @@
 import { BaseViewHandle } from '@/common';
 import type { CreateConveyorParams } from '../command/cmd_create_conveyor';
+import type { CreateLoadingDevicesParams } from '../command/cmd_create_loading_devices';
 import type { CreatePipelineDemoParams } from '../command/cmd_create_pipeline_demo';
 import type { CreateSimpleWorkpieceParams } from '../command/cmd_create_simple_workpiece';
 import type { ImportModelParams } from '../command/cmd_import_model';
@@ -7,11 +8,15 @@ import type { LoadWorkpieceParams } from '../command/cmd_load_workpiece';
 import type { MoveWorkpieceParams } from '../command/cmd_move_workpiece';
 import type { SetConveyorStatusParams } from '../command/cmd_set_conveyor_status';
 import type { SetPipelineStatusParams } from '../command/cmd_set_pipeline_status';
+import type { StartAutomationPipelineParams } from '../command/cmd_start_automation_pipeline';
+import type { StopAutomationPipelineParams } from '../command/cmd_stop_automation_pipeline';
+import type { TickAutomationPipelineParams } from '../command/cmd_tick_automation_pipeline';
 import type { TickConveyorWorkpiecesParams } from '../command/cmd_tick_conveyor_workpieces';
 import type { TickPipelineParams } from '../command/cmd_tick_pipeline';
 import type { UnloadWorkpieceParams } from '../command/cmd_unload_workpiece';
 import { CMD_TYPES } from '../command/cmd_types';
 import { ConveyorEntity } from '../model/conveyor';
+import { LoadingDeviceEntity } from '../model/loading_device';
 import { createLogisticsSnapshot, findConveyorByEntityId, findFirstConveyor, LogisticsSnapshot } from '../model/logistics';
 import { PipelineEntity } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
@@ -37,6 +42,10 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
 
     public createConveyor(params?: CreateConveyorParams): Promise<void> {
         return this.executeCommand(CMD_TYPES.CREATE_CONVEYOR, params);
+    }
+
+    public createLoadingDevices(params?: CreateLoadingDevicesParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.CREATE_LOADING_DEVICES, params);
     }
 
     public setConveyorStatus(params: SetConveyorStatusParams): Promise<void> {
@@ -65,6 +74,18 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
 
     public tickPipeline(params: TickPipelineParams): Promise<void> {
         return this.executeCommand(CMD_TYPES.TICK_PIPELINE, params);
+    }
+
+    public startAutomationPipeline(params?: StartAutomationPipelineParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.START_AUTOMATION_PIPELINE, params);
+    }
+
+    public stopAutomationPipeline(params?: StopAutomationPipelineParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.STOP_AUTOMATION_PIPELINE, params);
+    }
+
+    public tickAutomationPipeline(params: TickAutomationPipelineParams): Promise<void> {
+        return this.executeCommand(CMD_TYPES.TICK_AUTOMATION_PIPELINE, params);
     }
 
     /**
@@ -115,6 +136,21 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
         return null;
     }
 
+    public findLoadingDeviceByEntityIds(ids: number[]): LoadingDeviceEntity | null {
+        for (const id of ids) {
+            let entity = this._canvas.app.doc.getEntity(id);
+
+            while (entity) {
+                if (entity instanceof LoadingDeviceEntity) {
+                    return entity;
+                }
+                entity = entity.parent;
+            }
+        }
+
+        return null;
+    }
+
     public findFirstConveyor(): ConveyorEntity | null {
         return findFirstConveyor(this._canvas.app.doc.entityList);
     }
@@ -131,4 +167,3 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
         return createLogisticsSnapshot(this._canvas.app.doc.entityList, conveyor);
     }
 }
-

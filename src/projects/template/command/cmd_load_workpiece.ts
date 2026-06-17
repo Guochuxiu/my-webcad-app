@@ -3,14 +3,17 @@ import {
     createLogisticsSnapshot,
     findConveyorByEntityId,
     findFirstWaitingWorkpiece,
+    findLoadingDeviceByKind,
     getConveyorProgress,
     isConveyorAtCapacity,
     isConveyorEntryOccupied,
     LOGISTICS_LOCATIONS,
     LogisticsSnapshotEvent,
 } from '../model/logistics';
+import { getWorkpieceOnBeltPosition } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
+import { syncWarehouseStatus } from './pipeline_command_utils';
 
 export interface LoadWorkpieceParams {
     conveyorId?: number;
@@ -35,11 +38,14 @@ export class LoadWorkpieceCommand extends CmdBase<LoadWorkpieceParams, TempCanva
         }
 
         const workpiece = this._findTargetWorkpiece();
+        const loader = findLoadingDeviceByKind(entityList, 'loader');
 
         if (
             !workpiece ||
             workpiece.state !== 'waiting' ||
             workpiece.location !== LOGISTICS_LOCATIONS.warehouse ||
+            !loader ||
+            loader?.status === 'busy' ||
             isConveyorAtCapacity(entityList, conveyor) ||
             isConveyorEntryOccupied(entityList, conveyor)
         ) {
@@ -48,12 +54,15 @@ export class LoadWorkpieceCommand extends CmdBase<LoadWorkpieceParams, TempCanva
             return;
         }
 
+        loader?.setStatus('busy');
         workpiece.setState('loading');
         workpiece.setLocation(LOGISTICS_LOCATIONS.loader);
-        workpiece.moveToPosition(conveyor.startPoint);
+        workpiece.moveToPosition(getWorkpieceOnBeltPosition(conveyor, 0, workpiece.workpieceType));
         workpiece.setState('moving');
         workpiece.setLocation(conveyor.conveyorId);
         workpiece.setRemaining(this._getRemainingSeconds(workpiece));
+        loader?.setStatus('idle');
+        syncWarehouseStatus(this._view);
 
         this._view.dirty();
         this._dispatchLogisticsSnapshot();

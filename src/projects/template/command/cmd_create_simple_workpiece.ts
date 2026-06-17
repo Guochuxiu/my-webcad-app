@@ -3,6 +3,7 @@ import { getWarehousePosition } from '../model/pipeline';
 import { createLogisticsSnapshot, getWarehouseWorkpieces, LogisticsSnapshotEvent } from '../model/logistics';
 import { SimpleWorkpieceFactory, WorkpieceType } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
+import { getOrCreateWarehouse } from './pipeline_command_utils';
 
 export interface CreateSimpleWorkpieceParams {
     type: WorkpieceType;
@@ -22,6 +23,7 @@ export class CreateSimpleWorkpieceCommand extends CmdBase<CreateSimpleWorkpieceP
             return;
         }
 
+        const warehouse = getOrCreateWarehouse(this._view);
         const waitingIndex = getWarehouseWorkpieces(this._view.app.doc.entityList).length;
         const workpiece = SimpleWorkpieceFactory.create({
             type: this._params.type,
@@ -31,6 +33,7 @@ export class CreateSimpleWorkpieceCommand extends CmdBase<CreateSimpleWorkpieceP
         // addModel 会把业务实体加入 WebCAD 文档，显示由 Canvas 中的 Display 映射接管。
         this._view.addModel(workpiece);
         workpiece.dirtyGeometry();
+        warehouse.setStatus('has_workpieces');
         this._view.dirty();
         this._dispatchLogisticsSnapshot();
 
@@ -53,4 +56,3 @@ export class CreateSimpleWorkpieceCommand extends CmdBase<CreateSimpleWorkpieceP
         this._view.app.signalEventBus.dispatch(event);
     }
 }
-

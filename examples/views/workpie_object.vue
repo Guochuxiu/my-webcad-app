@@ -3,8 +3,8 @@
         <div ref="containerRef" class="canvas-host"></div>
         <section class="control-panel">
             <div class="panel-header">
-                <span class="panel-title">Workpiece Logistics Demo</span>
-                <span class="panel-subtitle">Warehouse / Load / Conveyor / Unload</span>
+                <span class="panel-title">工件物流演示</span>
+                <span class="panel-subtitle">仓库 / 上料 / 传送 / 下料 / 自动化</span>
             </div>
 
             <div class="button-row">
@@ -14,14 +14,21 @@
             </div>
 
             <div class="button-row">
+                <button type="button" @click="createLoadingDevices">创建上下料</button>
                 <button type="button" :disabled="!canStartConveyor" @click="startConveyor">启动传送带</button>
                 <button type="button" :disabled="!canStopConveyor" @click="stopConveyor">停止传送带</button>
-                <button type="button" :disabled="!canTickConveyor" @click="tickConveyorOnce">单步 Tick</button>
             </div>
 
             <div class="button-row">
                 <button type="button" :disabled="!canLoad" @click="loadWorkpiece">上料</button>
                 <button type="button" :disabled="!canUnload" @click="unloadWorkpiece">下料</button>
+                <button type="button" :disabled="!canTickConveyor" @click="tickConveyorOnce">单步 Tick</button>
+            </div>
+
+            <div class="button-row">
+                <button type="button" :disabled="isAutomationRunning" @click="startAutomationPipeline">自动化流水线</button>
+                <button type="button" :disabled="!isAutomationRunning" @click="stopAutomationPipeline">暂停自动化</button>
+                <button type="button" :disabled="!isAutomationRunning" @click="tickAutomationOnce">自动 Tick</button>
             </div>
 
             <div class="info-panel">
@@ -33,8 +40,20 @@
                             <dd>{{ logisticsInfo.currentTimeText }}</dd>
                         </div>
                         <div>
-                            <dt>传送带状态</dt>
+                            <dt>自动化</dt>
+                            <dd>{{ logisticsInfo.automationStatus }}</dd>
+                        </div>
+                        <div>
+                            <dt>传送带</dt>
                             <dd>{{ logisticsInfo.conveyorStatus }}</dd>
+                        </div>
+                        <div>
+                            <dt>上料装置</dt>
+                            <dd>{{ logisticsInfo.loaderStatus }}</dd>
+                        </div>
+                        <div>
+                            <dt>下料装置</dt>
+                            <dd>{{ logisticsInfo.unloaderStatus }}</dd>
                         </div>
                         <div>
                             <dt>仓库等待</dt>
@@ -47,6 +66,10 @@
                         <div>
                             <dt>B 点等待</dt>
                             <dd>{{ logisticsInfo.exitWaitingCount }}</dd>
+                        </div>
+                        <div>
+                            <dt>已完成</dt>
+                            <dd>{{ logisticsInfo.completedCount }}</dd>
                         </div>
                         <div>
                             <dt>阻塞原因</dt>
@@ -62,7 +85,7 @@
                         </div>
                     </dl>
                 </template>
-                <p v-else class="empty-text">创建传送带和工件后，可以按“上料 -> 启动传送带 -> 下料”推进流程。</p>
+                <p v-else class="empty-text">创建传送带、上下料装置和工件后，可以手动推进，也可以直接启动自动化流水线。</p>
             </div>
 
             <div class="info-panel">
@@ -142,6 +165,31 @@
                 </template>
                 <p v-else class="empty-text">创建或选中传送带后查看设备状态。</p>
             </div>
+
+            <div class="info-panel">
+                <div class="info-title">选中上下料装置</div>
+                <template v-if="selectedLoadingDeviceInfo">
+                    <dl>
+                        <div>
+                            <dt>业务 ID</dt>
+                            <dd>{{ selectedLoadingDeviceInfo.deviceId }}</dd>
+                        </div>
+                        <div>
+                            <dt>类型</dt>
+                            <dd>{{ selectedLoadingDeviceInfo.kind }}</dd>
+                        </div>
+                        <div>
+                            <dt>状态</dt>
+                            <dd>{{ selectedLoadingDeviceInfo.status }}</dd>
+                        </div>
+                        <div>
+                            <dt>目标点</dt>
+                            <dd>{{ selectedLoadingDeviceInfo.targetPoint }}</dd>
+                        </div>
+                    </dl>
+                </template>
+                <p v-else class="empty-text">创建上下料装置后，可以点击橙色或蓝色设备查看状态。</p>
+            </div>
         </section>
     </div>
 </template>
@@ -150,18 +198,22 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { WebcadTemp } from '@/projects/template';
 import type {
+    AutomationPipelineEvent,
     ConveyorEntity,
     ConveyorStatus,
     ConveyorStatusChangeEvent,
+    LoadingDeviceEntity,
+    LoadingDeviceStatus,
     LogisticsBlockedReason,
     LogisticsSnapshot,
     LogisticsSnapshotEvent,
+    PipelineStatus,
     SimpleWorkpiece,
     WorkpieceType,
 } from '@/projects/template';
 import type { TempViewHandle } from '@/projects/template/view/temp_view_handle';
 
-const VIEW_KEY = 'workpiece-prd1';
+const VIEW_KEY = 'workpiece-prd2';
 const TICK_SECONDS = 0.3;
 const BLOCKED_REASON_LABELS: Record<LogisticsBlockedReason, string> = {
     none: '无',
@@ -169,11 +221,26 @@ const BLOCKED_REASON_LABELS: Record<LogisticsBlockedReason, string> = {
     conveyor_entry_occupied: '入口被占用',
     conveyor_exit_occupied: 'B 点有工件等待下料',
     worktable_busy: '工作台忙',
+    loader_busy: '上料装置忙',
+    unloader_busy: '下料装置忙',
+};
+const DEVICE_STATUS_LABELS: Record<LoadingDeviceStatus | 'missing', string> = {
+    idle: '空闲',
+    busy: '忙碌',
+    missing: '未创建',
+};
+const AUTOMATION_STATUS_LABELS: Record<PipelineStatus | 'idle', string> = {
+    idle: '空闲',
+    running: '运行中',
+    paused: '已暂停',
+    blocked: '阻塞',
+    completed: '已完成',
 };
 
 const containerRef = ref<HTMLDivElement | null>(null);
 const selectedWorkpiece = ref<SimpleWorkpiece | null>(null);
 const selectedConveyor = ref<ConveyorEntity | null>(null);
+const selectedLoadingDevice = ref<LoadingDeviceEntity | null>(null);
 const selectedWorkpieceInfo = ref<{
     state: string;
     remainingText: string;
@@ -187,12 +254,22 @@ const selectedConveyorInfo = ref<{
     capacity: number;
     status: ConveyorStatus;
 } | null>(null);
+const selectedLoadingDeviceInfo = ref<{
+    deviceId: string;
+    kind: string;
+    status: string;
+    targetPoint: string;
+} | null>(null);
 const logisticsInfo = ref<{
     currentTimeText: string;
+    automationStatus: string;
     conveyorStatus: string;
+    loaderStatus: string;
+    unloaderStatus: string;
     waitingCount: number;
     conveyingCount: number;
     exitWaitingCount: number;
+    completedCount: number;
     blockedReason: string;
     worktableStatus: string;
 } | null>(null);
@@ -203,21 +280,28 @@ let viewHandle: TempViewHandle | null = null;
 let stopSelectionListen: (() => void) | null = null;
 let stopChangeListen: (() => void) | null = null;
 let conveyorTimer: ReturnType<typeof window.setInterval> | null = null;
+let automationTimer: ReturnType<typeof window.setInterval> | null = null;
 let conveyorTicking = false;
+let automationTicking = false;
 
+const isAutomationRunning = computed(() => {
+    return lastSnapshot.value?.automationStatus === 'running' || lastSnapshot.value?.automationStatus === 'blocked';
+});
 const canStartConveyor = computed(() => {
-    return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status !== 'running';
+    return Boolean(selectedConveyor.value) && selectedConveyorInfo.value?.status !== 'running' && !isAutomationRunning.value;
 });
 const canStopConveyor = computed(() => {
     return Boolean(selectedConveyor.value)
-        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked');
+        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked')
+        && !isAutomationRunning.value;
 });
 const canTickConveyor = computed(() => {
     return Boolean(selectedConveyor.value)
-        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked');
+        && (selectedConveyorInfo.value?.status === 'running' || selectedConveyorInfo.value?.status === 'blocked')
+        && !isAutomationRunning.value;
 });
-const canLoad = computed(() => Boolean(selectedConveyor.value) && Boolean(lastSnapshot.value?.canLoad));
-const canUnload = computed(() => Boolean(lastSnapshot.value?.canUnload));
+const canLoad = computed(() => Boolean(selectedConveyor.value) && Boolean(lastSnapshot.value?.canLoad) && !isAutomationRunning.value);
+const canUnload = computed(() => Boolean(lastSnapshot.value?.canUnload) && !isAutomationRunning.value);
 
 const featureSummary = computed(() => {
     const workpiece = selectedWorkpiece.value;
@@ -258,10 +342,11 @@ onMounted(async () => {
         },
     });
 
-    // 选中特征子实体时向上找到业务父实体，UI 只展示业务对象状态。
+    // 子实体被选中时，沿 parent 找到真正的业务实体，避免 UI 直接依赖 BatchMesh/BatchLine。
     stopSelectionListen = viewHandle.onSelectionChange.listen(event => {
         selectedWorkpiece.value = viewHandle?.findSimpleWorkpieceByEntityIds(event.selectedIds) ?? null;
         selectedConveyor.value = viewHandle?.findConveyorByEntityIds(event.selectedIds) ?? selectedConveyor.value;
+        selectedLoadingDevice.value = viewHandle?.findLoadingDeviceByEntityIds(event.selectedIds) ?? null;
         refreshAllInfo();
     });
 
@@ -269,11 +354,16 @@ onMounted(async () => {
         if (event.type !== 'command') return;
 
         const data = event.payload?.data as
+            | AutomationPipelineEvent
             | ConveyorStatusChangeEvent
             | LogisticsSnapshotEvent
             | undefined;
 
         if (data?.type === 'conveyorStatusChange') {
+            selectedConveyor.value = viewHandle?.findFirstConveyor() ?? selectedConveyor.value;
+        }
+
+        if (data?.type === 'automationPipelineStarted') {
             selectedConveyor.value = viewHandle?.findFirstConveyor() ?? selectedConveyor.value;
         }
 
@@ -289,6 +379,7 @@ onMounted(async () => {
 
 onUnmounted(async () => {
     stopConveyorTimer();
+    stopAutomationTimer();
     viewHandle?.cancelCommand();
     stopSelectionListen?.();
     stopChangeListen?.();
@@ -296,8 +387,10 @@ onUnmounted(async () => {
     stopChangeListen = null;
     selectedWorkpiece.value = null;
     selectedConveyor.value = null;
+    selectedLoadingDevice.value = null;
     selectedWorkpieceInfo.value = null;
     selectedConveyorInfo.value = null;
+    selectedLoadingDeviceInfo.value = null;
     logisticsInfo.value = null;
     lastSnapshot.value = null;
     await viewHandle?.dispose();
@@ -322,6 +415,14 @@ async function createConveyor() {
         speed: 100,
         capacity: 2,
     });
+    selectedConveyor.value = viewHandle.findFirstConveyor();
+    refreshAllInfo();
+}
+
+async function createLoadingDevices() {
+    if (!viewHandle) return;
+
+    await viewHandle.createLoadingDevices();
     selectedConveyor.value = viewHandle.findFirstConveyor();
     refreshAllInfo();
 }
@@ -386,6 +487,43 @@ async function tickConveyorOnce() {
     }
 }
 
+async function startAutomationPipeline() {
+    if (!viewHandle) return;
+
+    stopConveyorTimer();
+    await viewHandle.startAutomationPipeline({ minWorkpieceCount: 3 });
+    selectedConveyor.value = viewHandle.findFirstConveyor();
+    refreshAllInfo();
+    startAutomationTimer();
+}
+
+async function stopAutomationPipeline() {
+    if (!viewHandle) return;
+
+    stopAutomationTimer();
+    await viewHandle.stopAutomationPipeline();
+    refreshAllInfo();
+}
+
+async function tickAutomationOnce() {
+    if (!viewHandle || automationTicking) return;
+
+    automationTicking = true;
+
+    try {
+        await viewHandle.tickAutomationPipeline({
+            deltaSeconds: TICK_SECONDS,
+        });
+        refreshAllInfo();
+
+        if (lastSnapshot.value?.automationStatus === 'completed' || lastSnapshot.value?.automationStatus === 'paused') {
+            stopAutomationTimer();
+        }
+    } finally {
+        automationTicking = false;
+    }
+}
+
 function startConveyorTimer() {
     if (conveyorTimer !== null) return;
 
@@ -401,6 +539,21 @@ function stopConveyorTimer() {
     conveyorTimer = null;
 }
 
+function startAutomationTimer() {
+    if (automationTimer !== null) return;
+
+    automationTimer = window.setInterval(() => {
+        void tickAutomationOnce();
+    }, TICK_SECONDS * 1000);
+}
+
+function stopAutomationTimer() {
+    if (automationTimer === null) return;
+
+    window.clearInterval(automationTimer);
+    automationTimer = null;
+}
+
 function refreshAllInfo() {
     if (viewHandle) {
         selectedConveyor.value = selectedConveyor.value ?? viewHandle.findFirstConveyor();
@@ -408,6 +561,7 @@ function refreshAllInfo() {
 
     refreshSelectedWorkpieceInfo();
     refreshSelectedConveyorInfo();
+    refreshSelectedLoadingDeviceInfo();
     refreshLogisticsInfo();
 }
 
@@ -438,6 +592,19 @@ function refreshSelectedConveyorInfo() {
         : null;
 }
 
+function refreshSelectedLoadingDeviceInfo() {
+    const device = selectedLoadingDevice.value;
+
+    selectedLoadingDeviceInfo.value = device
+        ? {
+            deviceId: device.deviceId,
+            kind: device.kind === 'loader' ? '上料' : '下料',
+            status: DEVICE_STATUS_LABELS[device.status],
+            targetPoint: formatPoint(device.targetPoint),
+        }
+        : null;
+}
+
 function refreshLogisticsInfo() {
     if (!viewHandle) {
         logisticsInfo.value = null;
@@ -454,10 +621,14 @@ function applySnapshot(snapshot: LogisticsSnapshot) {
     lastSnapshot.value = snapshot;
     logisticsInfo.value = {
         currentTimeText: new Date(snapshot.currentTime).toLocaleTimeString(),
+        automationStatus: AUTOMATION_STATUS_LABELS[snapshot.automationStatus],
         conveyorStatus: snapshot.conveyorStatus ?? '未创建',
+        loaderStatus: DEVICE_STATUS_LABELS[snapshot.loaderStatus],
+        unloaderStatus: DEVICE_STATUS_LABELS[snapshot.unloaderStatus],
         waitingCount: snapshot.waitingCount,
         conveyingCount: snapshot.conveyingCount,
         exitWaitingCount: snapshot.exitWaitingCount,
+        completedCount: snapshot.completedCount,
         blockedReason: BLOCKED_REASON_LABELS[snapshot.blockedReason],
         worktableStatus: snapshot.worktableStatus === 'busy' ? '忙' : '空闲',
     };
