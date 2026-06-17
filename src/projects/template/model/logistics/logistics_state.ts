@@ -86,6 +86,7 @@ export function findConveyorByEntityId(entityList: unknown[], entityId?: number)
     return getConveyors(entityList).find((conveyor) => conveyor.id === entityId) ?? null;
 }
 
+//获取仓库中的工件
 export function getWarehouseWorkpieces(entityList: unknown[]): SimpleWorkpiece[] {
     return getSimpleWorkpieces(entityList).filter(
         (workpiece) => workpiece.location === LOGISTICS_LOCATIONS.warehouse && workpiece.state === 'waiting'

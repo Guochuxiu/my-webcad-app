@@ -12,6 +12,7 @@ import {
 import { getManualUnloadPosition } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
+import { getOrCreateWorktable, syncWorktableStatus } from './pipeline_command_utils';
 
 export interface UnloadWorkpieceParams {
     workpieceId?: number;
@@ -46,6 +47,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
             return;
         }
 
+        getOrCreateWorktable(this._view);
         unloader?.setStatus('busy');
         target.setState('unloading');
         target.setLocation(LOGISTICS_LOCATIONS.unloader);
@@ -60,6 +62,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
             conveyor.setStatus('running');
         }
 
+        syncWorktableStatus(this._view);
         this._view.dirty();
         this._dispatchLogisticsSnapshot();
 

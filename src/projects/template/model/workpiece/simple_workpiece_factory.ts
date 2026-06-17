@@ -1,6 +1,13 @@
 import { FSCore } from '@fs/cadnginx';
 import { getWorkpieceSize } from '../pipeline';
-import { SimpleWorkpiece, WorkpieceFeatureFace, WorkpieceFeatureLine, WorkpieceFeaturePoint, WorkpieceType } from './simple_workpiece';
+import {
+    SimpleWorkpiece,
+    WORKPIECE_LINE_COLOR,
+    WorkpieceFeatureFace,
+    WorkpieceFeatureLine,
+    WorkpieceFeaturePoint,
+    WorkpieceType,
+} from './simple_workpiece';
 
 export interface CreateSimpleWorkpieceOptions {
     type: WorkpieceType;
@@ -58,7 +65,7 @@ export class SimpleWorkpieceFactory {
 
         const featureLines = new FSCore.Model.BatchLine({
             vertex: this._buildLineVertex(geometry.points, geometry.lines),
-            color: 0x1f2937
+            color: WORKPIECE_LINE_COLOR
         });
 
         const featurePoints = new FSCore.Model.BatchPoint({

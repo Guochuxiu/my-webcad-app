@@ -27,13 +27,14 @@ export const PIPELINE_WORKPIECE_SIZES: Record<WorkpieceType, PipelineWorkpieceSi
 };
 
 export const PIPELINE_LAYOUT = {
-    warehouseBasePoint: [-160, -340, 0] as PipelinePoint,
+    warehouseBasePoint: [-160, -340, 40] as PipelinePoint,
     warehouseBaseSize: [190, 320, 18] as PipelinePoint,
     warehouseStart: [-160, -220, 70] as PipelinePoint,
     warehouseGap: [0, -120, 0] as PipelinePoint,
     loaderPoint: [-80, 0, 70] as PipelinePoint,
     unloaderPoint: [880, 0, 70] as PipelinePoint,
     worktablePoint: [960, 170, 70] as PipelinePoint,
+    worktableSize: [150, 130, 18] as PipelinePoint,
     manualUnloadStart: [960, 350, 70] as PipelinePoint,
     manualUnloadGap: [0, 110, 0] as PipelinePoint,
     completedStart: [1110, 170, 70] as PipelinePoint,

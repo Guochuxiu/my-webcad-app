@@ -3,6 +3,9 @@ import { FSCore } from '@fs/cadnginx';
 export type WorkpieceType = 'box' | 'cylinder';
 export type WorkpieceState = 'waiting' | 'loading' | 'moving' | 'arrived' | 'unloading' | 'processing' | 'done';
 
+export const WORKPIECE_LINE_COLOR = 0x1f2937;
+export const WORKPIECE_SELECTED_LINE_COLOR = 0xff7a18;
+
 export interface WorkpieceFeaturePoint {
     id: string;
     name: string;
@@ -38,12 +41,8 @@ export interface SimpleWorkpieceMeta {
 /**
  * 简单工件的业务实体。
  *
- * 这里继承 Group，是因为工件本身是一个“数字孪生对象”容器：
- * - 父实体保存类型、状态、库位和特征清单等业务语义；
- * - 子实体保存主体网格、特征线、特征点等可显示几何。
- *
- * 这样工件可以进入 WebCAD 的 document/entity/display 链路，
- * 而不是把裸 Three.js 对象直接塞进 scene。
+ * 父级 Group 保存类型、状态、库位和特征清单；子实体保存主体网格、特征线和特征点。
+ * 这样工件通过 WebCAD document/entity/display 链路渲染和拾取，不直接向 scene 添加 Three.js 对象。
  */
 export class SimpleWorkpiece extends FSCore.Model.Group {
     public readonly workpieceType: WorkpieceType;
@@ -51,6 +50,7 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
     private _location: string;
     private _features: WorkpieceFeatures;
     private _remaining = 0;
+    private _selected = false;
 
     constructor(meta: SimpleWorkpieceMeta) {
         super();
@@ -76,14 +76,18 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
         return this._remaining;
     }
 
+    public get selected(): boolean {
+        return this._selected;
+    }
+
     public getPositionTuple(): [number, number, number] {
         return [this.position.x, this.position.y, this.position.z];
     }
 
     public setState(state: WorkpieceState): void {
         if (this._state === state) return;
+
         this._state = state;
-        // 状态影响材质或颜色表现，触发材质 dirty 让 Display 有机会刷新外观。
         this.dirtyMaterial();
     }
 
@@ -94,6 +98,15 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
 
         this._remaining = nextRemaining;
         this.dirtyMaterial();
+    }
+
+    public setSelected(selected: boolean): void {
+        if (this._selected === selected) return;
+
+        this._selected = selected;
+        this._syncLineHighlight();
+        this.dirtyMaterial();
+        this.dirty();
     }
 
     public moveToPosition(position: [number, number, number]): void {
@@ -108,14 +121,26 @@ export class SimpleWorkpiece extends FSCore.Model.Group {
 
     public setLocation(location: string): void {
         if (this._location === location) return;
+
         this._location = location;
-        // 库位变化通常对应空间语义变化，先用 position dirty 标记位置相关刷新。
         this.dirtyPosition();
     }
 
     public setFeatures(features: WorkpieceFeatures): void {
         this._features = features;
-        // 特征点/线/面变化会影响几何展示，需要触发几何 dirty。
         this.dirtyGeometry();
+    }
+
+    private _syncLineHighlight(): void {
+        const color = this._selected ? WORKPIECE_SELECTED_LINE_COLOR : WORKPIECE_LINE_COLOR;
+
+        this.forEachChild(child => {
+            if (child instanceof FSCore.Model.BatchLine) {
+                child.color = color;
+                child.dirtyMaterial();
+                child.dirtyGeometry();
+            }
+            child.dirty();
+        });
     }
 }

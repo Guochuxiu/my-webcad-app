@@ -7,12 +7,26 @@ import {
     findFirstConveyor,
     findLoadingDeviceByKind,
     getWarehouseWorkpieces,
+    getWorktableBusyWorkpiece,
 } from '../model/logistics';
 import { getWorkpieceOnBeltPosition, getWarehousePosition, PIPELINE_LAYOUT } from '../model/pipeline';
 import { SimpleWorkpieceFactory, WorkpieceType } from '../model/workpiece';
+import { WorktableEntity } from '../model/worktable';
 
 export const AUTOMATION_PIPELINE_ID = 'automation_pipeline_01';
 export const DEFAULT_WAREHOUSE_ID = 'warehouse_01';
+export const DEFAULT_WORKTABLE_ID = 'worktable_01';
+
+export function focusEntitiesInNextFrame(view: TempCanvas, entityIds: number[]): void {
+    const ids = entityIds.filter(id => Number.isFinite(id));
+
+    if (ids.length === 0) return;
+
+    view.runInNewFrame(() => {
+        view.select(ids);
+        view.fitView(ids, [100, 100, 100, 100]);
+    });
+}
 
 export function getOrCreateWarehouse(view: TempCanvas): WarehouseEntity {
     const existed = view.app.doc.entityList.find(entity => {
@@ -50,6 +64,44 @@ export function syncWarehouseStatus(view: TempCanvas): void {
     if (!(warehouse instanceof WarehouseEntity)) return;
 
     warehouse.setStatus(getWarehouseWorkpieces(view.app.doc.entityList).length > 0 ? 'has_workpieces' : 'idle');
+}
+
+export function getOrCreateWorktable(view: TempCanvas): WorktableEntity {
+    const status = getWorktableBusyWorkpiece(view.app.doc.entityList) ? 'busy' : 'idle';
+    const existed = view.app.doc.entityList.find(entity => {
+        return entity instanceof WorktableEntity && entity.businessId === DEFAULT_WORKTABLE_ID;
+    });
+
+    if (existed instanceof WorktableEntity) {
+        existed.setLayout(PIPELINE_LAYOUT.worktablePoint, PIPELINE_LAYOUT.worktableSize);
+        existed.setStatus(status);
+
+        return existed;
+    }
+
+    const worktable = new WorktableEntity({
+        id: DEFAULT_WORKTABLE_ID,
+        position: PIPELINE_LAYOUT.worktablePoint,
+        size: PIPELINE_LAYOUT.worktableSize,
+        status
+    });
+
+    view.addModel(worktable);
+    worktable.dirtyGeometry();
+    worktable.dirtyMaterial();
+    view.dirty();
+
+    return worktable;
+}
+
+export function syncWorktableStatus(view: TempCanvas): void {
+    const worktable = view.app.doc.entityList.find(entity => {
+        return entity instanceof WorktableEntity && entity.businessId === DEFAULT_WORKTABLE_ID;
+    });
+
+    if (!(worktable instanceof WorktableEntity)) return;
+
+    worktable.setStatus(getWorktableBusyWorkpiece(view.app.doc.entityList) ? 'busy' : 'idle');
 }
 
 export function getOrCreateConveyor(view: TempCanvas): ConveyorEntity {

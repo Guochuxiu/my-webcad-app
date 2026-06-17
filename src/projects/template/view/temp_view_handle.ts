@@ -106,6 +106,29 @@ export class TempViewHandle extends BaseViewHandle<TempCanvas> {
         return null;
     }
 
+    public syncWorkpieceSelectionHighlight(ids: number[]): void {
+        const selectedWorkpieceIds = new Set<number>();
+
+        for (const id of ids) {
+            let entity = this._canvas.app.doc.getEntity(id);
+
+            while (entity) {
+                if (entity instanceof SimpleWorkpiece) {
+                    selectedWorkpieceIds.add(entity.id);
+                    break;
+                }
+                entity = entity.parent;
+            }
+        }
+
+        this._canvas.app.doc.entityList.forEach(entity => {
+            if (entity instanceof SimpleWorkpiece) {
+                entity.setSelected(selectedWorkpieceIds.has(entity.id));
+            }
+        });
+        this._canvas.dirty();
+    }
+
     public findConveyorByEntityIds(ids: number[]): ConveyorEntity | null {
         for (const id of ids) {
             let entity = this._canvas.app.doc.getEntity(id);

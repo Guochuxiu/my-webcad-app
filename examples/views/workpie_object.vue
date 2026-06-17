@@ -344,6 +344,7 @@ onMounted(async () => {
 
     // 子实体被选中时，沿 parent 找到真正的业务实体，避免 UI 直接依赖 BatchMesh/BatchLine。
     stopSelectionListen = viewHandle.onSelectionChange.listen(event => {
+        viewHandle?.syncWorkpieceSelectionHighlight(event.selectedIds);
         selectedWorkpiece.value = viewHandle?.findSimpleWorkpieceByEntityIds(event.selectedIds) ?? null;
         selectedConveyor.value = viewHandle?.findConveyorByEntityIds(event.selectedIds) ?? selectedConveyor.value;
         selectedLoadingDevice.value = viewHandle?.findLoadingDeviceByEntityIds(event.selectedIds) ?? null;

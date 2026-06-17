@@ -8,7 +8,7 @@ export interface ImportModelParams {
     fitView?: boolean;
 }
 
-//导入模型，获取WebCAD Entity，把实体加入 WebCAD 模型层
+//定义了一个“导入模型”命令：接收用户选择的文件，解析成 WebCAD Entity，然后加入当前 TempCanvas 的模型层并刷新视图。
 export class CmdImportModel extends CmdBase<ImportModelParams, TempCanvas> {
     async commit() {
         const files = dedupeImportFiles(this._params?.files ?? []);

@@ -10,7 +10,7 @@ import {
 import { PipelineEntity } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
 import { TempCanvas } from '../view/temp_canvas';
-import { AUTOMATION_PIPELINE_ID, syncWarehouseStatus } from './pipeline_command_utils';
+import { AUTOMATION_PIPELINE_ID, syncWarehouseStatus, syncWorktableStatus } from './pipeline_command_utils';
 import type { AutomationPipelineEvent } from './cmd_start_automation_pipeline';
 
 export interface TickAutomationPipelineParams {
@@ -50,6 +50,7 @@ export class TickAutomationPipelineCommand extends CmdBase<TickAutomationPipelin
             }
         });
         syncWarehouseStatus(this._view);
+        syncWorktableStatus(this._view);
         const logisticsSnapshot = createLogisticsSnapshot(this._view.app.doc.entityList, conveyor);
 
         this._view.dirty();

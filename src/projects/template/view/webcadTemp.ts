@@ -9,6 +9,7 @@ export class WebcadTemp extends WebCadApiBase<TemplateCmdParamTypes> {
     //命令注册表
     public static CMD_TYPES = CMD_TYPES;
 
+    //获取实例：app=WebcadTemp.getInstance()
     private static _instance: WebcadTemp;
     public static getInstance():WebcadTemp {
         if (!this._instance) {
@@ -18,10 +19,12 @@ export class WebcadTemp extends WebCadApiBase<TemplateCmdParamTypes> {
         return this._instance as WebcadTemp;
     }
 
+    //根据 handleKey 找到 view handle，并执行命令
     public executeCommand<K extends CMD_TYPES>(handleKey: string, cmdName: K, params?: TemplateCmdParamTypes[K]): Promise<any> {
         return super.executeCommand(handleKey, cmdName, params);
     }
 
+    //创建一个 WebCAD 业务视图，并返回 TempViewHandle
     public async createView(viewKey: string, container: HTMLElement, options?: any): Promise<TempViewHandle> {
         if (!this._app) {
             this._createApp();
@@ -37,6 +40,7 @@ export class WebcadTemp extends WebCadApiBase<TemplateCmdParamTypes> {
         return viewHandle;
     }
 
+    //创建 TempCanvas，再包装成 TempViewHandle
     protected async createViewHandle(viewKey: string, domElement: HTMLElement, configOptions?: any): Promise<TempViewHandle> {
         const view = await this._app.createView(viewKey, TempCanvas as any, { domElement, app: this._app, configOptions });
 

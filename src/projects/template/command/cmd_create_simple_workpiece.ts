@@ -23,14 +23,16 @@ export class CreateSimpleWorkpieceCommand extends CmdBase<CreateSimpleWorkpieceP
             return;
         }
 
+        //获取或创建一个仓库实体
         const warehouse = getOrCreateWarehouse(this._view);
+        //获取仓库中的工件
         const waitingIndex = getWarehouseWorkpieces(this._view.app.doc.entityList).length;
+        //创建工件
         const workpiece = SimpleWorkpieceFactory.create({
             type: this._params.type,
             center: this._params.center ?? getWarehousePosition(waitingIndex),
         });
 
-        // addModel 会把业务实体加入 WebCAD 文档，显示由 Canvas 中的 Display 映射接管。
         this._view.addModel(workpiece);
         workpiece.dirtyGeometry();
         warehouse.setStatus('has_workpieces');
@@ -46,6 +48,7 @@ export class CreateSimpleWorkpieceCommand extends CmdBase<CreateSimpleWorkpieceP
         super.commit({ workpieceId: workpiece.id });
     }
 
+    //创建工件后，重新计算当前物流状态，并通过事件总线通知 UI 更新
     private _dispatchLogisticsSnapshot(): void {
         const snapshot = createLogisticsSnapshot(this._view.app.doc.entityList);
         const event: LogisticsSnapshotEvent = {

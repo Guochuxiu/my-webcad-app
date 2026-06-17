@@ -19,12 +19,6 @@ export interface WorkpieceMoveProgressEvent {
     position: WorkpiecePosition;
 }
 
-/**
- * Move a SimpleWorkpiece entity over time.
- *
- * The command only updates the WebCAD entity pose and dirty state. Display refresh is
- * still handled by the existing Entity -> Display chain.
- */
 export class MoveWorkpieceCommand extends CmdBase<MoveWorkpieceParams, TempCanvas> {
     private _frameId: number | null = null;
     private _workpiece: SimpleWorkpiece | null = null;

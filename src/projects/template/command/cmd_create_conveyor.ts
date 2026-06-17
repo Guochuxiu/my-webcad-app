@@ -1,6 +1,7 @@
 import { CmdBase } from '@/common';
 import { ConveyorEntity, ConveyorMeta, DEFAULT_CONVEYOR_META } from '../model/conveyor';
 import { TempCanvas } from '../view/temp_canvas';
+import { focusEntitiesInNextFrame } from './pipeline_command_utils';
 
 export interface CreateConveyorParams {
     id?: string;
@@ -28,7 +29,7 @@ export class CreateConveyorCommand extends CmdBase<CreateConveyorParams, TempCan
             existed.setRuntimeData(meta.speed, meta.capacity);
             existed.setStatus('idle');
             this._view.dirty();
-            this._selectConveyorInNextFrame(existed.id);
+            focusEntitiesInNextFrame(this._view, [existed.id]);
 
             super.commit({ conveyorId: existed.id });
 
@@ -40,7 +41,7 @@ export class CreateConveyorCommand extends CmdBase<CreateConveyorParams, TempCan
         this._view.addModel(conveyor);
         conveyor.dirtyGeometry();
         this._view.dirty();
-        this._selectConveyorInNextFrame(conveyor.id);
+        focusEntitiesInNextFrame(this._view, [conveyor.id]);
 
         super.commit({ conveyorId: conveyor.id });
     }
@@ -51,13 +52,5 @@ export class CreateConveyorCommand extends CmdBase<CreateConveyorParams, TempCan
         });
 
         return entity instanceof ConveyorEntity ? entity : null;
-    }
-
-    private _selectConveyorInNextFrame(entityId: number): void {
-        // 等 display 创建/刷新进入下一帧后再 fit 和 select，避免包围盒还没更新。
-        this._view.runInNewFrame(() => {
-            this._view.fitView();
-            this._view.select([entityId]);
-        });
     }
 }

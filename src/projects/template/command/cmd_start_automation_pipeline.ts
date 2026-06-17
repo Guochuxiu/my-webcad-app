@@ -10,6 +10,8 @@ import {
     getOrCreateConveyor,
     getOrCreateWarehouse,
     getOrCreateLoadingDevices,
+    getOrCreateWorktable,
+    syncWorktableStatus,
 } from './pipeline_command_utils';
 
 export interface StartAutomationPipelineParams {
@@ -27,6 +29,7 @@ export class StartAutomationPipelineCommand extends CmdBase<StartAutomationPipel
         getOrCreateWarehouse(this._view);
         const conveyor = getOrCreateConveyor(this._view);
         const devices = getOrCreateLoadingDevices(this._view, conveyor);
+        getOrCreateWorktable(this._view);
         const minCount = Math.max(3, this._params?.minWorkpieceCount ?? 3);
 
         ensureWarehouseWorkpieces(this._view, minCount);
@@ -36,6 +39,7 @@ export class StartAutomationPipelineCommand extends CmdBase<StartAutomationPipel
 
         devices.loader.setStatus('idle');
         devices.unloader.setStatus('idle');
+        syncWorktableStatus(this._view);
         pipeline.start();
         conveyor.start();
 

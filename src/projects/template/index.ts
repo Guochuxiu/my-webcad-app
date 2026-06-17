@@ -5,6 +5,7 @@ export * from './model/loading_device';
 export * from './model/pipeline';
 export * from './model/logistics';
 export * from './model/warehouse';
+export * from './model/worktable';
 export * from './command/cmd_create_simple_workpiece';
 export * from './command/cmd_move_workpiece';
 export * from './command/cmd_create_conveyor';
