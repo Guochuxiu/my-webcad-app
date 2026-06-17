@@ -8,6 +8,10 @@ const MARKER_SIZE = 24;
 const ARROW_SIZE = 28;
 const ARROW_COUNT = 3;
 const ARROW_HEIGHT = 22;
+const BOX_HALF_WIDTH = Math.max(BELT_WIDTH / 2, MARKER_SIZE / 2);
+const BOX_FORWARD_PADDING = Math.max(MARKER_SIZE / 2, ARROW_SIZE);
+const BOX_DOWN_HEIGHT = Math.max(BELT_THICKNESS / 2, MARKER_SIZE / 2);
+const BOX_UP_HEIGHT = Math.max(BELT_THICKNESS / 2, MARKER_SIZE / 2, ARROW_HEIGHT);
 
 export class ConveyorDisplay extends FSApp.View.Three.ThreeDisplay<ConveyorEntity> {
     private _materials: THREE.Material[] = [];
@@ -48,6 +52,49 @@ export class ConveyorDisplay extends FSApp.View.Three.ThreeDisplay<ConveyorEntit
         this._applyStatusStyle();
 
         return root;
+    }
+
+    public get boundingBox(): THREE.Box3 {
+        const box = new THREE.Box3();
+
+        this._getBoxCorners().forEach(point => box.expandByPoint(point));
+
+        return box;
+    }
+
+    public get standardBox(): THREE.Box2 | undefined {
+        const camera = this.canvas.camera;
+        const box = new THREE.Box2();
+
+        this._getBoxCorners().forEach(point => {
+            const projected = point.clone().project(camera);
+
+            box.expandByPoint(new THREE.Vector2(projected.x, projected.y));
+        });
+
+        if (this._checkBox(box)) {
+            return box;
+        }
+
+        return undefined;
+    }
+
+    public get screenBox(): THREE.Box2 | undefined {
+        const standardBox = this.standardBox;
+
+        if (!standardBox) return undefined;
+
+        const min = this.canvas.standardToScreen(standardBox.min);
+        const max = this.canvas.standardToScreen(standardBox.max);
+        const box = new THREE.Box2()
+            .expandByPoint(new THREE.Vector2(min.x, min.y))
+            .expandByPoint(new THREE.Vector2(max.x, max.y));
+
+        if (this._checkBox(box)) {
+            return box;
+        }
+
+        return undefined;
     }
 
     public createPickObject(): THREE.Object3D | undefined {
@@ -270,6 +317,32 @@ export class ConveyorDisplay extends FSApp.View.Three.ThreeDisplay<ConveyorEntit
         const source = new THREE.Vector3(1, 0, 0);
 
         return new THREE.Quaternion().setFromUnitVectors(source, direction.clone().normalize());
+    }
+
+    private _getBoxCorners(): THREE.Vector3[] {
+        const direction = this._getDirectionVector();
+        const orientation = this._getOrientation(direction);
+        const lateral = new THREE.Vector3(0, 1, 0).applyQuaternion(orientation).normalize();
+        const vertical = new THREE.Vector3(0, 0, 1).applyQuaternion(orientation).normalize();
+        const start = this._toVector(this.entity.startPoint).addScaledVector(direction, -BOX_FORWARD_PADDING);
+        const end = this._toVector(this.entity.endPoint).addScaledVector(direction, BOX_FORWARD_PADDING);
+        const matrix = this.entity.worldMatrix;
+        const points: THREE.Vector3[] = [];
+
+        [start, end].forEach(base => {
+            [-BOX_HALF_WIDTH, BOX_HALF_WIDTH].forEach(widthOffset => {
+                [-BOX_DOWN_HEIGHT, BOX_UP_HEIGHT].forEach(heightOffset => {
+                    points.push(
+                        base.clone()
+                            .addScaledVector(lateral, widthOffset)
+                            .addScaledVector(vertical, heightOffset)
+                            .applyMatrix4(matrix)
+                    );
+                });
+            });
+        });
+
+        return points;
     }
 
     private _toVector(point: [number, number, number]): THREE.Vector3 {

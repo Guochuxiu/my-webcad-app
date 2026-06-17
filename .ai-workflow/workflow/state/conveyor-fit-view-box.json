@@ -1,0 +1,60 @@
+{
+  "task_id": "conveyor-fit-view-box",
+  "title": "Conveyor creation should fit view to the full conveyor",
+  "lane": "bugfix",
+  "current_stage": "acceptance",
+  "status": "in_progress",
+  "feedback_type": null,
+  "change_scope_level": "small",
+  "blocked_from_stage": null,
+  "blocked_reason": null,
+  "recovery_condition": null,
+  "recovery_owner": null,
+  "resume_target_stage": null,
+  "user_confirmation": {
+    "proposal_approved": false,
+    "implementation_approved": false
+  },
+  "review_gates": {
+    "proposal_blockers": 0,
+    "proposal_high": 0,
+    "code_blockers": 0,
+    "verification_passed": true
+  },
+  "rounds": {
+    "proposal_review_round": 0,
+    "code_review_round": 1
+  },
+  "artifacts": {
+    "bugfix_report": {
+      "path": "docs/bugs/conveyor-fit-view-box-report.md",
+      "version": 1,
+      "hash": "sha256:E5D8806672849953815326E369D0C9138BE678833B8D664A69C402F68A31E4EA",
+      "approved_version": null
+    },
+    "implementation": {
+      "path": "docs/implementation/conveyor-fit-view-box.md",
+      "version": 1,
+      "hash": "sha256:31943B07D7FBBE3E41B9B1F4315230A0EB58D1216A3F06DC98DE09CA68ACEC56",
+      "approved_version": null
+    },
+    "changes": {
+      "path": "docs/changes/conveyor-fit-view-box-changes.json",
+      "version": 1,
+      "hash": "sha256:6C5D912034F5F8E28F584CFFC30E43D793311BB5F93DE381ECB99BB803FBE45B",
+      "approved_version": null
+    },
+    "acceptance": {
+      "path": "docs/acceptance/conveyor-fit-view-box.md",
+      "version": 1,
+      "hash": "sha256:4D44B77467DBF84AA0B30144D687769E811991B26A2B0B4364540D2F75E97959",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1,
+    "implementation_version": 1,
+    "changes_version": 1,
+    "acceptance_version": 1
+  }
+}

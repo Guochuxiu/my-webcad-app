@@ -1,0 +1,108 @@
+{
+  "run_id": "run-conveyor-fit-view-box-001",
+  "task_id": "conveyor-fit-view-box",
+  "lane": "bugfix",
+  "current_stage": "acceptance",
+  "checkpoint_id": "cp-conveyor-fit-view-box-001",
+  "event_cursor": 5,
+  "checkpoint_payload": {
+    "current_stage": "acceptance",
+    "last_successful_transition": "regression_verification -> acceptance",
+    "timestamp": "2026-06-17T00:00:00+08:00"
+  },
+  "pending_events": [],
+  "retry_count": 0,
+  "timeout_policy": {
+    "review_wait_hours": 8
+  },
+  "side_effects": [
+    {
+      "type": "write_artifact",
+      "target": "docs/bugs/conveyor-fit-view-box-report.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "conveyor-fit-view-box-report-v1",
+      "status": "completed"
+    },
+    {
+      "type": "write_artifact",
+      "target": "docs/implementation/conveyor-fit-view-box.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "conveyor-fit-view-box-implementation-v1",
+      "status": "completed"
+    },
+    {
+      "type": "write_artifact",
+      "target": "docs/changes/conveyor-fit-view-box-changes.json",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "conveyor-fit-view-box-changes-v1",
+      "status": "completed"
+    },
+    {
+      "type": "write_artifact",
+      "target": "docs/acceptance/conveyor-fit-view-box.md",
+      "replay_policy": "non_replayable",
+      "idempotency_key": "conveyor-fit-view-box-acceptance-v1",
+      "status": "completed"
+    }
+  ],
+  "idempotency_keys": [
+    "conveyor-fit-view-box-report-v1",
+    "conveyor-fit-view-box-implementation-v1",
+    "conveyor-fit-view-box-changes-v1",
+    "conveyor-fit-view-box-acceptance-v1"
+  ],
+  "artifact_versions": {
+    "bugfix_report": {
+      "path": "docs/bugs/conveyor-fit-view-box-report.md",
+      "version": 1,
+      "hash": "sha256:E5D8806672849953815326E369D0C9138BE678833B8D664A69C402F68A31E4EA",
+      "approved_version": null
+    },
+    "implementation": {
+      "path": "docs/implementation/conveyor-fit-view-box.md",
+      "version": 1,
+      "hash": "sha256:31943B07D7FBBE3E41B9B1F4315230A0EB58D1216A3F06DC98DE09CA68ACEC56",
+      "approved_version": null
+    },
+    "changes": {
+      "path": "docs/changes/conveyor-fit-view-box-changes.json",
+      "version": 1,
+      "hash": "sha256:6C5D912034F5F8E28F584CFFC30E43D793311BB5F93DE381ECB99BB803FBE45B",
+      "approved_version": null
+    },
+    "acceptance": {
+      "path": "docs/acceptance/conveyor-fit-view-box.md",
+      "version": 1,
+      "hash": "sha256:4D44B77467DBF84AA0B30144D687769E811991B26A2B0B4364540D2F75E97959",
+      "approved_version": null
+    }
+  },
+  "bound_artifact_set": {
+    "bugfix_report_version": 1,
+    "implementation_version": 1,
+    "changes_version": 1,
+    "acceptance_version": 1
+  },
+  "review_trace": [
+    {
+      "review_type": "code-review",
+      "round": 1,
+      "reviewer": "codex-reviewer-pass",
+      "disposition": "approve_with_notes",
+      "authoritative_reviewer_role": "code-reviewer",
+      "review_mode": "blocking",
+      "notes": "Checked Display registration, viewObj timing, dirty behavior, fitView screenBox path, and business-library boundary. Browser visual framing remains manual acceptance."
+    },
+    {
+      "review_type": "verification",
+      "round": 1,
+      "reviewer": "codex-verification-gate",
+      "disposition": "approve_with_notes",
+      "authoritative_reviewer_role": "verification-gate",
+      "review_mode": "blocking",
+      "notes": "ESLint passed, filtered typecheck found no touched-file errors, npm build completed with existing unrelated example declaration diagnostics."
+    }
+  ],
+  "approval_trace": [],
+  "active_agent_run_ids": []
+}
