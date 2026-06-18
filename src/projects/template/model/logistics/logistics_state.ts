@@ -93,6 +93,7 @@ export function getWarehouseWorkpieces(entityList: unknown[]): SimpleWorkpiece[]
     );
 }
 
+//查找仓库里第一个等待工件
 export function findFirstWaitingWorkpiece(entityList: unknown[]): SimpleWorkpiece | null {
     return getWarehouseWorkpieces(entityList)[0] ?? null;
 }

@@ -94,6 +94,7 @@ export function getOrCreateWorktable(view: TempCanvas): WorktableEntity {
     return worktable;
 }
 
+//设置工作台状态
 export function syncWorktableStatus(view: TempCanvas): void {
     const worktable = view.app.doc.entityList.find(entity => {
         return entity instanceof WorktableEntity && entity.businessId === DEFAULT_WORKTABLE_ID;

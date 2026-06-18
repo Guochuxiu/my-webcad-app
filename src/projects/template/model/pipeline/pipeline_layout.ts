@@ -49,6 +49,7 @@ export function getCompletedPosition(index: number): PipelinePoint {
     return addPoint(PIPELINE_LAYOUT.completedStart, scalePoint(PIPELINE_LAYOUT.completedGap, index));
 }
 
+//计算工件放到工作台区域的哪个位置
 export function getManualUnloadPosition(index: number): PipelinePoint {
     return addPoint(PIPELINE_LAYOUT.manualUnloadStart, scalePoint(PIPELINE_LAYOUT.manualUnloadGap, index));
 }

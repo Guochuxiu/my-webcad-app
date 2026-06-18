@@ -40,6 +40,7 @@ export class LoadWorkpieceCommand extends CmdBase<LoadWorkpieceParams, TempCanva
         const workpiece = this._findTargetWorkpiece();
         const loader = findLoadingDeviceByKind(entityList, 'loader');
 
+        //没有工件，工件不是等待状态，工件不在仓库，没有上料设备，上料设备忙，传送带满了，入口被占用
         if (
             !workpiece ||
             workpiece.state !== 'waiting' ||
@@ -75,6 +76,7 @@ export class LoadWorkpieceCommand extends CmdBase<LoadWorkpieceParams, TempCanva
         this._view.select([workpiece.id]);
     }
 
+    //查找目标工件。可能时参数指定的工件，也可能时仓库中第一个工件
     private _findTargetWorkpiece(): SimpleWorkpiece | null {
         const workpieceId = this._params?.workpieceId;
 
@@ -87,6 +89,7 @@ export class LoadWorkpieceCommand extends CmdBase<LoadWorkpieceParams, TempCanva
         return entity instanceof SimpleWorkpiece ? entity : null;
     }
 
+    //计算工件还需要多少秒到达传送带末端
     private _getRemainingSeconds(workpiece: SimpleWorkpiece): number {
         const conveyor = findConveyorByEntityId(this._view.app.doc.entityList, this._params?.conveyorId);
 

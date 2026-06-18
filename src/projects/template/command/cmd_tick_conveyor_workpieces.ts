@@ -6,7 +6,7 @@ import {
     getConveyorWorkpieces,
     getExitWaitingWorkpieces,
     LOGISTICS_LOCATIONS,
-    LogisticsSnapshotEvent,
+    LogisticsSnapshotEvent
 } from '../model/logistics';
 import { getWorkpieceOnBeltPosition } from '../model/pipeline';
 import { TempCanvas } from '../view/temp_canvas';
@@ -26,6 +26,7 @@ const MIN_SLOT_PROGRESS = 0.14;
 export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiecesParams, TempCanvas> {
     public async commit(): Promise<void> {
         const conveyor = findConveyorByEntityId(this._view.app.doc.entityList, this._params?.conveyorId);
+        //推进时间
         const deltaSeconds = Math.max(0, this._params?.deltaSeconds ?? 0);
 
         if (!conveyor || deltaSeconds <= 0) {
@@ -42,6 +43,7 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
         }
 
         const exitWaiting = getExitWaitingWorkpieces(this._view.app.doc.entityList);
+
         if (exitWaiting.length > 0) {
             conveyor.setStatus('blocked');
             this._view.dirty();
@@ -117,7 +119,7 @@ export class TickConveyorWorkpiecesCommand extends CmdBase<TickConveyorWorkpiece
         const snapshot = this._createResult();
         const event: LogisticsSnapshotEvent = {
             type: 'logisticsSnapshot',
-            ...snapshot,
+            ...snapshot
         };
 
         this._view.app.signalEventBus.dispatch(event);

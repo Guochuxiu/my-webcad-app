@@ -7,7 +7,7 @@ import {
     getSimpleWorkpieces,
     getWorktableBusyWorkpiece,
     LOGISTICS_LOCATIONS,
-    LogisticsSnapshotEvent,
+    LogisticsSnapshotEvent
 } from '../model/logistics';
 import { getManualUnloadPosition } from '../model/pipeline';
 import { SimpleWorkpiece } from '../model/workpiece';
@@ -28,12 +28,14 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
     public async commit(): Promise<void> {
         const target = this._findTargetWorkpiece();
 
+        //工件未到指定位置
         if (!target || target.state !== 'arrived' || target.location !== LOGISTICS_LOCATIONS.conveyorExit) {
             this.cancel();
 
             return;
         }
 
+        //工作台处于工作状态
         if (getWorktableBusyWorkpiece(this._view.app.doc.entityList)) {
             this.cancel();
 
@@ -41,12 +43,14 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         }
 
         const unloader = findLoadingDeviceByKind(this._view.app.doc.entityList, 'unloader');
+
         if (!unloader || unloader.status === 'busy') {
             this.cancel();
 
             return;
         }
 
+        //下料过程
         getOrCreateWorktable(this._view);
         unloader?.setStatus('busy');
         target.setState('unloading');
@@ -58,6 +62,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         unloader?.setStatus('idle');
 
         const conveyor = findFirstConveyor(this._view.app.doc.entityList);
+
         if (conveyor?.status === 'blocked' && getExitWaitingWorkpieces(this._view.app.doc.entityList).length === 0) {
             conveyor.setStatus('running');
         }
@@ -69,7 +74,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         super.commit({
             workpieceId: target.id,
             location: target.location,
-            state: target.state,
+            state: target.state
         });
         this._view.select([target.id]);
     }
@@ -86,6 +91,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         return entity instanceof SimpleWorkpiece ? entity : null;
     }
 
+    //计算工件放到工作台区域的哪个位置
     private _getWorktablePosition(): [number, number, number] {
         const doneCount = getSimpleWorkpieces(this._view.app.doc.entityList).filter(
             (workpiece) => workpiece.location === LOGISTICS_LOCATIONS.worktable && workpiece.state === 'done'
@@ -99,7 +105,7 @@ export class UnloadWorkpieceCommand extends CmdBase<UnloadWorkpieceParams, TempC
         const snapshot = createLogisticsSnapshot(this._view.app.doc.entityList, conveyor);
         const event: LogisticsSnapshotEvent = {
             type: 'logisticsSnapshot',
-            ...snapshot,
+            ...snapshot
         };
 
         this._view.app.signalEventBus.dispatch(event);
